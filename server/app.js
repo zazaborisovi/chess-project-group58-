@@ -1,11 +1,16 @@
 require('dotenv').config(); // Load environment variables from .env file
 
 // middleware imports
+const mongoose = require('mongoose')
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+
+// router imports
+const userRouter = require('./routes/user.routes');
+const oauthRouter = require('./routes/oauth.routes');
 
 // model imports
 const GameRoom = require('./models/chess.game.room.model');
@@ -29,9 +34,6 @@ const io = new Server(server, {
     credentials: true
   }
 })
-
-// initializing routes
-
 
 // using socket
 io.on("connection", (socket) =>{
@@ -93,7 +95,12 @@ io.on("connection", (socket) =>{
   })
 })
 
-mongoose.connect(process.env.MONGODB_URI) // connects to database(MongoDB)
+// initializing routes
+app.use("/api/auth", userRouter)
+app.use("/api/oauth", oauthRouter)
+
+// connecting to database and starting server
+mongoose.connect(process.env.MONGODB_URI)
   .then(() =>{
     console.log("Connected to MongoDB")
     
