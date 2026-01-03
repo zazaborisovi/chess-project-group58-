@@ -35,6 +35,24 @@ const UserSchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'User',
     default: []
+  },
+  wins: { // for leaderboard
+    type: Number,
+    default: 0
+  },
+  // was planning on adding elo rating but it will take more than 2 weeks
+  friends: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "User",
+    default: []
+  },
+  friendRequests: {
+    type: [{
+      from: { type: String , default: this.username},
+      state: { type: String, enum: ["pending" , "accepted" , "rejected"], default: 'pending'},
+      to: { type: String , default: ""}
+    }],
+    default: []
   }
 }, {timestamps: true})
 

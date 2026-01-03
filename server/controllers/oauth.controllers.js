@@ -20,7 +20,7 @@ const createSendToken = async (user, res) => {
         maxAge: process.env.COOKIE_EXPIRES_IN,
     };
 
-    res.cookie('ls', token, cookieOptions);
+    res.cookie(`${process.env.COOKIE_NAME}`, token, cookieOptions);
 
     // Redirect to panel after setting cookie
     res.redirect(`${process.env.CLIENT_URL}`)
@@ -72,7 +72,7 @@ const googleCallback = async (req , res) =>{
           }
 
           user = await User.create({
-              name,
+              username: name,
               email,
               oauthid: sub,
               oauthProvider: 'google'

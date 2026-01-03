@@ -3,9 +3,9 @@ const User = require("../models/user.model");
 
 const protect = async (req, res, next) => {
   try {
-    const token = req.cookies[process.env.JWT_COOKIE_NAME]; // takes cookie from request
-
-    if (!token) return res.status(401).json({ message: "Unauthorized" });
+    const token = req.cookies[process.env.COOKIE_NAME]; // takes cookie from request
+    
+    if (!token) return res.status(401).json({ message: "Unauthorized"});
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 

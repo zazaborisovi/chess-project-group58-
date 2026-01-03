@@ -7,10 +7,12 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const {setCache , getCache , cache} = require('./utils/cache');
 
 // router imports
 const userRouter = require('./routes/user.routes');
 const oauthRouter = require('./routes/oauth.routes');
+const roomRouter = require('./routes/game.room.routes');
 
 // model imports
 const GameRoom = require('./models/chess.game.room.model');
@@ -37,50 +39,51 @@ const io = new Server(server, {
 
 // using socket
 io.on("connection", (socket) =>{
-  // authentication via socket
-  socket.on("authenticate", ({userId}) =>{
-    socket.userId = userId
-  })
-  
-  // creates and joins game room
-  socket.on("create-game-room" , async ({board}) =>{
-    const room = await GameRoom.create({
-      gameId: Math.random().toString(36).substring(2 , 15),
-      player1: socket.userId,
-      player2: null,
-      board,
-      turn: "white"
-    })
+  socket.on("create-game-room" , async ({gameId}) =>{
+    const room = await GameRoom.findOne(gameId)
     socket.join(room.gameId)
-    // shows a game on client side
-    socket.emit("room-created", {
-      gameId: room.gameId,
-      board: room.board,
-      playerColor: room.turn
-    })
+
+    socket.emit("room-created")
   })
   
   // joining game via gameId
-  socket.on("join-game-room", async ({gameId}) =>{
-    const room = await GameRoom.findOne({gameId: gameId})
+  socket.on("join-game-room", async ({ gameId, user }) => {
+    let room = getCache(gameId)
+    
+    if (!room) {
+      const dbData = await GameRoom.findOne({ gameId: gameId })
+      if(dbData){
+        room = {
+          board: dbData.board,
+          turn: dbData.turn
+        }
+        setCache(gameId , room)
+      }
+    }
+    
+    console.log(gameId, user)
     
     console.log(room) // debugging purposes
     
-    if(!room) return res.status(404).json({message: "Game not found"}) // checks if game room exists
+    if (!room) return console.log("game not found")
     
-    if(room.player2) return res.status(400).json({message: "Game is full"}) // checks if game room is full
+    const {player1 , player2} = await GameRoom.findOne({gameId: gameId}) // gets player1 and player2 from database
+    const isPlayer1 = user === player1
     
-    if(socket.userId === room.player1) return res.status(400).json({message: "You cannot join your own game"}) // checks if user is trying to join their own game
+    if (!player2 && !isPlayer1){
+      await GameRoom.findOneAndUpdate({gameId: gameId}, {player2: user})
+    }
     
-    room.player2 = socket.userId
-    await room.save()
+    socket.emit("player-joined", {
+      playerColor: isPlayer1 ? "white" : "black",
+      opponent: isPlayer1 ? player2 : player1
+    }) // emits player joined event which gives frontend color and opponent player of this player
     
     socket.join(gameId)
     
-    io.to(gameId).emit("start-game", {
+    io.to(gameId).emit("data", {
       board: room.board,
-      playerColor: "black",
-      turn: room.turn
+      turn: room.turn,
     })
   })
   
@@ -90,14 +93,19 @@ io.on("connection", (socket) =>{
     
     io.to(data.gameId).emit("piece-moved", { // updates board and turn on client side for everyone in room
       board: data.board,
-      turn: data.turn
+      turn: data.turn,
+      checkmate: data.checkmate,
+      stalemate: data.stalemate
     })
+    console.log(data.board , data.turn)
   })
 })
 
 // initializing routes
 app.use("/api/auth", userRouter)
 app.use("/api/oauth", oauthRouter)
+
+app.use("/game" , roomRouter)
 
 // connecting to database and starting server
 mongoose.connect(process.env.MONGODB_URI)
