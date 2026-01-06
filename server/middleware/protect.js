@@ -3,15 +3,17 @@ const User = require("../models/user.model");
 
 const protect = async (req, res, next) => {
   try {
-    const token = req.cookies[process.env.COOKIE_NAME]; // takes cookie from request
+    const cookie = req.cookies[process.env.COOKIE_NAME]; // takes cookie from request
     
-    if (!token) return res.status(401).json({ message: "Unauthorized"});
+    console.log(cookie)
+    
+    if (!cookie) return res.status(401).json({ message: "Unauthorized / no token"});
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(cookie, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id);
 
-    if (!user) return res.status(401).json({ message: "Unauthorized" });
+    if (!user) return res.status(401).json({ message: "Unauthorized / no user" });
 
     req.user = user;
     

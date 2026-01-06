@@ -7,19 +7,20 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const {setCache , getCache , cache} = require('./utils/cache');
+const {setCache , getCache} = require('./utils/cache');
 
-// router imports
-const userRouter = require('./routes/user.routes');
-const oauthRouter = require('./routes/oauth.routes');
-const roomRouter = require('./routes/game.room.routes');
+// route imports
+const authRouter = require('./routes/auth.route');
+const oauthRouter = require('./routes/oauth.route');
+const roomRouter = require('./routes/game.room.route');
+const friendRouter = require('./routes/friends.route');
 
 // model imports
-const GameRoom = require('./models/chess.game.room.model');
+const GameRoom = require('./models/game.room.model');
 
 // initializing express app and http server
 const app = express()
-const server = http.createServer(app)
+const httpServer = http.createServer(app)
 
 // middlewares
 app.use(cookieParser())
@@ -29,8 +30,8 @@ app.use(cors({
   credentials: true
 }))
 
-// initializing socket.io server
-const io = new Server(server, {
+// initializing socket.io on httpServer
+const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL,
     credentials: true
@@ -102,17 +103,17 @@ io.on("connection", (socket) =>{
 })
 
 // initializing routes
-app.use("/api/auth", userRouter)
+app.use("/api/auth", authRouter)
 app.use("/api/oauth", oauthRouter)
-
-app.use("/game" , roomRouter)
+app.use("/api/game" , roomRouter)
+app.use("/api/friends", friendRouter)
 
 // connecting to database and starting server
 mongoose.connect(process.env.MONGODB_URI)
   .then(() =>{
     console.log("Connected to MongoDB")
     
-    server.listen(process.env.PORT, () =>{ // connects to http server
+    httpServer.listen(process.env.PORT, () =>{ // connects to http server
       console.log(`server running on port ${process.env.PORT}`)
     })
   })

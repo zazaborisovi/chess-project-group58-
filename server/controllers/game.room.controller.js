@@ -1,4 +1,4 @@
-const GameRoom = require('../models/chess.game.room.model');
+const GameRoom = require('../models/game.room.model');
 const {cache , setCache} = require('../utils/cache')
 
 const createGameRoom = async (req , res) =>{

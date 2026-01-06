@@ -8,12 +8,15 @@ import { Protect } from './contexts/utils/Protect.tsx';
 import BoardComponent from './chess/Board.tsx';
 import Friends from './pages/Friends.tsx';
 import Signout from './components/Signout.tsx';
+import FriendProvider from './contexts/friends.context.tsx';
+import FriendRequestPage from './pages/FriendRequest.tsx';
+import NavComponent from './pages/components/Nav.tsx';
 
 export default function App() {
   return(
     <>
       {/*<Board />*/}
-      <Signout />
+      <NavComponent />
       <Routes>
         <Route path="/" element={
           <Protect>
@@ -24,10 +27,18 @@ export default function App() {
         }/>
         <Route path='/friends' element={
           <Protect>
-            <Friends />
+            <FriendProvider>
+              <Friends />
+            </FriendProvider>
           </Protect>
-        }>
-        </Route>
+        }/>
+        <Route path='/friend-requests' element={
+          <Protect>
+            <FriendProvider>
+              <FriendRequestPage/>
+            </FriendProvider>
+          </Protect>
+        }/>
         <Route path="/game/:id" element={
           <Protect>
             <ChessProvider>

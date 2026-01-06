@@ -2,9 +2,9 @@ import { createContext, useState , useEffect, useContext } from "react";
 import { io } from "socket.io-client";
 import type { Board } from "../types/chess.types";
 
-export const chessContext = createContext();
+const ChessContext = createContext();
 
-export const useChess = () => useContext(chessContext)
+export const useChess = () => useContext(ChessContext)
 
 const ChessProvider = ({children}) =>{
   const [board , setBoard] = useState<Board>()
@@ -72,9 +72,9 @@ const ChessProvider = ({children}) =>{
   }
 
   return(
-    <chessContext.Provider value={{socket , board , setBoard , updateBoardForEveryone , turn  , setTurn , gameId , playerColor , setPlayerColor , joinGame , stalemate , setStalemate , checkmate , setCheckmate , createGame , setGameId}}>
+    <ChessContext.Provider value={{socket , board , setBoard , updateBoardForEveryone , turn  , setTurn , gameId , playerColor , setPlayerColor , joinGame , stalemate , setStalemate , checkmate , setCheckmate , createGame , setGameId}}>
       {children}
-    </chessContext.Provider>
+    </ChessContext.Provider>
   ) 
 }
 

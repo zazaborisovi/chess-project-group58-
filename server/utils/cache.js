@@ -1,6 +1,6 @@
 // cache is needed to store data of chess games so we can update database later instead of making socket functions wait for database to update and then send data to client (using timeout for it to automatically updoadte after certain time)
 
-const GameRoom = require("../models/chess.game.room.model")
+const GameRoom = require("../models/game.room.model")
 
 const cache = new Map() // Map for easier access and manipulation of cached data
 const timers = new Map()

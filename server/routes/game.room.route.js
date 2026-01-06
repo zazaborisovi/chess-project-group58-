@@ -1,5 +1,5 @@
 const roomRouter = require("express").Router();
-const {createGameRoom, getGameRoom} = require("../controllers/game.room.controllers");
+const {createGameRoom, getGameRoom} = require("../controllers/game.room.controller");
 const protect = require("../middleware/protect");
 
 roomRouter.post("/create", createGameRoom);

@@ -2,7 +2,7 @@ import { useContext, useState , createContext, useEffect} from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
