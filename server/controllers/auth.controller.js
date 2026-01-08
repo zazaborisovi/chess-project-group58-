@@ -19,14 +19,19 @@ const signup = async (req , res) =>{
   try{
     const { email, username, password } = req.body
     
-    const checkEmail = await User.findOne({email})
+    console.log("executed", email, username, password)
+    
+    const checkEmail = await User.findOne({email: email})
+
     if(checkEmail) return res.status(400).json({message: 'User with this email already exists'})
     
     const user = await User.create({email, username, password})
     await user.save()
+    console.log("user created", user)
     
     createAndSendToken(user, 201, res)
   }catch(err){
+    console.log(err)
     res.status(500).json(err.message)
   }
 }

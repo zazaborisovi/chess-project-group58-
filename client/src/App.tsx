@@ -7,12 +7,16 @@ import GameRoom from './pages/GameRoom';
 import { Protect } from './contexts/utils/Protect.tsx';
 import BoardComponent from './chess/Board.tsx';
 import Friends from './pages/Friends.tsx';
-import Signout from './components/Signout.tsx';
 import FriendProvider from './contexts/friends.context.tsx';
 import FriendRequestPage from './pages/FriendRequest.tsx';
 import NavComponent from './pages/components/Nav.tsx';
+import ControlPanelProvider from './contexts/control.panel.context.tsx';
+import ControlPanel from './pages/ControlPanel.tsx';
+import {useAuth} from './contexts/auth.context';
 
 export default function App() {
+  const {user} = useAuth()
+  
   return(
     <>
       {/*<Board />*/}
@@ -46,6 +50,17 @@ export default function App() {
             </ChessProvider>
           </Protect>
         }/>
+        {
+          user?.role === "admin" || user?.role === "moderator" ? (
+            <Route path="/control-panel" element={
+              <Protect>
+                <ControlPanelProvider>
+                  <ControlPanel />
+                </ControlPanelProvider>
+              </Protect>
+            }/>
+          ) : null
+        }
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<Signin />} />
         {/*<Route path="/profile" element={<Profile />} />*/}

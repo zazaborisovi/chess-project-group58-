@@ -9,8 +9,8 @@ const getCache = (id) => {
   return cache.get(id)
 }
 
-const setCache = (id , { board , turn}) => {
-  cache.set(id , {  board , turn})
+const setCache = (id , { board , turn , chat}) => {
+  cache.set(id , { board , turn , chat})
   
   saveToDatabase(id)
   
@@ -25,7 +25,7 @@ function saveToDatabase(id) {
   const newTimer = setTimeout(() => { // sets new timer for the game
     const data = getCache(id)
     if(data){
-      GameRoom.updateOne({gameId: id} , {board: data.board , turn: data.turn})
+      GameRoom.updateOne({gameId: id} , {board: data.board , turn: data.turn , chat: data.chat})
     }
     timers.delete(id)
   }, 2000)

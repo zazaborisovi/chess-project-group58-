@@ -17,6 +17,9 @@ const NavComponent = () => {
             <button onClick={() => navigate("/friend-requests")}>Friend Requests</button>
           </div>
           <button>Dark Mode</button>
+          {user?.role === "admin" || user?.role === "moderator" ? (
+            <button onClick={() => navigate("/control-panel")}>Control Panel</button>
+          ) : null}
         </div>
       ):(
         <div className="flex gap-5">

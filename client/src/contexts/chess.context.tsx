@@ -1,6 +1,9 @@
 import { createContext, useState , useEffect, useContext } from "react";
 import { io } from "socket.io-client";
 import type { Board } from "../types/chess.types";
+import { useAuth } from "./auth.context";
+
+const API_URL = import.meta.env.VITE_API_URL
 
 const ChessContext = createContext();
 
@@ -15,14 +18,17 @@ const ChessProvider = ({children}) =>{
   
   // to create new game room
   const [gameId , setGameId] = useState("")
+  const [chat , setChat] = useState([])
   const [playerColor , setPlayerColor] = useState("")
-
+  
+  const {user} = useAuth()
+  
   const socket = io(import.meta.env.VITE_BACKEND_URL)
   
   // creates new game room with link and redirects us to it
   const createGame = async(username , board) => {
     try{
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/game/create`,{
+      const res = await fetch(`${API_URL}/game/create`,{
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -44,7 +50,7 @@ const ChessProvider = ({children}) =>{
   
   const joinGame = (id) =>{
     try{
-      window.location.href = `${import.meta.env.VITE_CLIENT_URL}/game/${id}`
+      window.location.href = `${API_URL}/game/${id}`
     }catch(err){
       console.log(err)
     }
@@ -62,6 +68,20 @@ const ChessProvider = ({children}) =>{
     }
   }, [])
   
+  useEffect(() => {
+    socket.on("message-sent" , ({messageObj}) =>{
+      console.log(messageObj)
+      setChat(prev => [...prev , messageObj])
+    })
+    return () => {
+      socket.off("message-sent")
+    }
+  }, [])
+  
+  const sendMessage = (message) =>{
+    socket.emit("send-message", {gameId , message, user: user.username})
+  }
+  
   const updateBoardForEveryone = (newBoard: Board, nextTurn: string, { checkmate , stalemate}) =>{ // updates the board for everyone in the same game room
     if(!socket || !gameId) return console.log("Socket or gameId is undefined")
     
@@ -72,7 +92,27 @@ const ChessProvider = ({children}) =>{
   }
 
   return(
-    <ChessContext.Provider value={{socket , board , setBoard , updateBoardForEveryone , turn  , setTurn , gameId , playerColor , setPlayerColor , joinGame , stalemate , setStalemate , checkmate , setCheckmate , createGame , setGameId}}>
+    <ChessContext.Provider value={{
+      socket,
+      board,
+      setBoard,
+      updateBoardForEveryone,
+      turn,
+      setTurn,
+      gameId,
+      playerColor,
+      setPlayerColor,
+      joinGame,
+      stalemate,
+      setStalemate,
+      checkmate,
+      setCheckmate,
+      createGame,
+      setGameId,
+      chat,
+      setChat,
+      sendMessage
+    }}>
       {children}
     </ChessContext.Provider>
   ) 

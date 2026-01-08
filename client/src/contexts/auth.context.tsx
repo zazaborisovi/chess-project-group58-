@@ -72,8 +72,9 @@ export const AuthProvider = ({children}) =>{
       })
       navigate("/")
     }catch(err){
+      console.log(err)
       toast.update(toastId,{
-        render: err.message,
+        render: err,
         type: "error",
         autoClose: 3000,
         isLoading: false

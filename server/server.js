@@ -7,13 +7,16 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const {setCache , getCache} = require('./utils/cache');
+const { setCache, getCache } = require('./utils/cache');
+const protect = require('./middleware/protect');
 
 // route imports
 const authRouter = require('./routes/auth.route');
 const oauthRouter = require('./routes/oauth.route');
 const roomRouter = require('./routes/game.room.route');
 const friendRouter = require('./routes/friends.route');
+const adminRouter = require('./routes/admin.panel.route');
+const chatRouter = require('./routes/chat.route');
 
 // model imports
 const GameRoom = require('./models/game.room.model');
@@ -56,13 +59,12 @@ io.on("connection", (socket) =>{
       if(dbData){
         room = {
           board: dbData.board,
-          turn: dbData.turn
+          turn: dbData.turn,
+          chat: dbData.chat
         }
-        setCache(gameId , room)
+        setCache(gameId , room , room.chat)
       }
     }
-    
-    console.log(gameId, user)
     
     console.log(room) // debugging purposes
     
@@ -100,6 +102,15 @@ io.on("connection", (socket) =>{
     })
     console.log(data.board , data.turn)
   })
+  
+  socket.on("send-message", async({gameId , message , user}) =>{
+    const messageObj = {
+      sender: user,
+      message: message
+    }
+    
+    io.to(gameId).emit("message-sent", {messageObj})
+  })
 })
 
 // initializing routes
@@ -107,6 +118,8 @@ app.use("/api/auth", authRouter)
 app.use("/api/oauth", oauthRouter)
 app.use("/api/game" , roomRouter)
 app.use("/api/friends", friendRouter)
+app.use("/api/admin", adminRouter)
+app.use("/api/chats", chatRouter)
 
 // connecting to database and starting server
 mongoose.connect(process.env.MONGODB_URI)

@@ -14,7 +14,8 @@ const createGameRoom = async (req , res) =>{
       player1: username,
       player2: null,
       board: board,
-      turn: "white"
+      turn: "white",
+      chat: []
     })
     
     res.status(201).json({gameId: gameRoom.gameId , board: gameRoom.board, turn: gameRoom.turn , url: `${process.env.CLIENT_URL}/game/${gameRoom.gameId}`})

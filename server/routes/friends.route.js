@@ -1,5 +1,5 @@
 const friendRouter = require("express").Router()
-const protect = require("../middleware/protect")
+const {protect} = require("../middleware/protect")
 const { sendFriendRequest, fetchFriends, fetchFriendRequests, acceptFriendRequest } = require("../controllers/friends.controller")
 
 friendRouter.post("/send-friend-request", protect , sendFriendRequest)

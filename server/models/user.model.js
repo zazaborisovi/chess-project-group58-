@@ -7,14 +7,12 @@ const UserSchema = new mongoose.Schema({
   email:{
     type: String,
     required: [true , 'Email is required'],
-    unique: true,
     lowercase: true,
     validate: [validator.isEmail, "Please provide a valid email"]
   },
   username:{
     type: String,
     required: [true , 'Username is required'],
-    unique: true,
     minlength: [4, 'Username must be at least 4 characters long'],
     maxlength: [20, 'Username must be at most 20 characters long']
   },
@@ -24,21 +22,21 @@ const UserSchema = new mongoose.Schema({
       return !this.oauthProvider
     }, 'Password is required'],
     minlength: [8, 'Password must be at least 8 characters long'],
-    maxlength: [20, 'Password must be at most 20 characters long']
   },
   oauthId: String,
   oauthProvider:{
     type: String,
     enum: ['google', 'facebook', 'github', null]
   },
-  friends: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'User',
-    default: []
+  role: {
+    type: String,
+    enum: ["admin" , "user" , "moderator"],
+    default: "user"
   },
   wins: { // for leaderboard
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
   // was planning on adding elo rating but it will take more than 2 weeks
   friends: {
@@ -56,9 +54,10 @@ const UserSchema = new mongoose.Schema({
   }
 }, {timestamps: true})
 
-UserSchema.pre("save" , function(){
+UserSchema.pre("save", async function () {
   if (!this.isModified("password")) return
-  this.password = bcrypt.hash(this.password, 15) // hashes the password before saving it
+
+  this.password = await bcrypt.hash(this.password, 12);
 })
 
 UserSchema.methods.comparePassword = async function(candidate){

@@ -9,7 +9,14 @@ const gameRoomSchema = new mongoose.Schema({
   createdAt:{
     type: Date,
     default: Date.now
-  }
+  },
+  chat: [{
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    message: String
+  }]
 })
 
 const GameRoom = mongoose.model('GameRoom', gameRoomSchema)
