@@ -24,17 +24,9 @@ export default function BoardComponent(){
     setStalemate,
     checkmate,
     setCheckmate,
-    sendMessage, chat
   } = useChess()
   const [loading , setLoading] = useState(true)
   const [opponent , setOpponent] = useState(null)
-  
-  const [formData , handleChange] = useForm({message:""})
-  
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    sendMessage(formData.message)
-  }
   
   useEffect(() =>{
     const path = window.location.pathname
@@ -228,15 +220,6 @@ export default function BoardComponent(){
               })}
             </div>
           ))}
-          {
-            chat.map((messageObj , index) => (
-              <p key={index} className={`${messageObj.sender == user.username ? "bg-green-500" : "bg-gray-400"}`}>{ messageObj.sender == user.username && messageObj.sender + ": "} {messageObj.message}</p>
-            ))
-          }
-          <form onSubmit={(e) => handleSubmit(e)}>
-            <input type="text" placeholder="enter message" name="message" onChange={handleChange} />
-            <button type="submit">Send</button>
-          </form>
         </div>
       </>
       )}

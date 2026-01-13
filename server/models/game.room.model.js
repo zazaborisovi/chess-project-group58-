@@ -10,6 +10,7 @@ const gameRoomSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  private: Boolean,
   chat: [{
     sender: {
       type: mongoose.Schema.Types.ObjectId,

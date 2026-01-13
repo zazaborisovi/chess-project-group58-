@@ -13,6 +13,11 @@ import NavComponent from './pages/components/Nav.tsx';
 import ControlPanelProvider from './contexts/control.panel.context.tsx';
 import ControlPanel from './pages/ControlPanel.tsx';
 import {useAuth} from './contexts/auth.context';
+import ChatProvider from './contexts/chat.context.tsx';
+import ChatPage from './pages/Chat.tsx';
+import ProfilePage from './pages/Profile.tsx';
+import LeaderboardPage from './pages/Leaderboard.tsx';
+import LeaderBoardProvider from './contexts/leaderboard.context.tsx';
 
 export default function App() {
   const {user} = useAuth()
@@ -31,16 +36,20 @@ export default function App() {
         }/>
         <Route path='/friends' element={
           <Protect>
-            <FriendProvider>
-              <Friends />
-            </FriendProvider>
+            <ChatProvider>
+              <FriendProvider>
+                <Friends/>
+              </FriendProvider>
+            </ChatProvider>
           </Protect>
         }/>
         <Route path='/friend-requests' element={
           <Protect>
-            <FriendProvider>
-              <FriendRequestPage/>
-            </FriendProvider>
+            <ChatProvider>
+              <FriendProvider>
+                <FriendRequestPage/>
+              </FriendProvider>
+            </ChatProvider>
           </Protect>
         }/>
         <Route path="/game/:id" element={
@@ -49,7 +58,23 @@ export default function App() {
               <BoardComponent />
             </ChessProvider>
           </Protect>
-        }/>
+        } />
+        <Route path="/chat/:chatId" element={
+          <Protect>
+            <ChatProvider>
+              <ChatPage />
+            </ChatProvider>
+          </Protect>
+        } />
+        <Route path="/profile" element={
+          <Protect>
+            <ChatProvider>
+              <FriendProvider>
+                <ProfilePage />
+              </FriendProvider>
+            </ChatProvider>
+          </Protect>
+        } />
         {
           user?.role === "admin" || user?.role === "moderator" ? (
             <Route path="/control-panel" element={
@@ -61,6 +86,13 @@ export default function App() {
             }/>
           ) : null
         }
+        <Route path="/leaderboard" element={
+          <Protect>
+            <LeaderBoardProvider>
+              <LeaderboardPage />
+            </LeaderBoardProvider>
+          </Protect>
+        } />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<Signin />} />
         {/*<Route path="/profile" element={<Profile />} />*/}

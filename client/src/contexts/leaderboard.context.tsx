@@ -9,14 +9,22 @@ const LeaderBoardProvider = ({children}) =>{
   
   useEffect(() => {
     const fetchLeaderboard = async () =>{
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/leaderboard`)
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/leaderboard/`)
       
       const data = await res.json()
-      
-      if(!res.ok) return console.log(data.message)
+
+      if (!res.ok) return console.log(data.message)
       
       setLeaderBoard(data)
     }
     fetchLeaderboard()
   }, [])
+
+  return (
+    <LeaderBoardContext.Provider value={{leaderboard}}>
+      {children}
+    </LeaderBoardContext.Provider>
+  )
 }
+
+export default LeaderBoardProvider

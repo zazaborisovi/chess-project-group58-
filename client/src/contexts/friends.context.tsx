@@ -1,4 +1,5 @@
 import { createContext , useContext, useEffect, useState } from "react";
+import { useChat } from "./chat.context";
 
 const API_URL = import.meta.env.VITE_API_URL + "/friends"
 
@@ -6,7 +7,8 @@ const FriendContext = createContext()
 
 export const useFriends = () => useContext(FriendContext)
 
-const FriendProvider = ({ children }) =>{
+const FriendProvider = ({ children }) => {
+  const {createChat} = useChat()
   const [friends , setFriends] = useState([])
   const [requests , setRequests] = useState([])
   
@@ -95,14 +97,36 @@ const FriendProvider = ({ children }) =>{
       
       if(!res.ok) return console.log(data.message)
       
+      await createChat(friendId)
       console.log(data.message)
     }catch(err){
       console.log(err)
     }
   }
   
+  const rejectFriendRequest = async (friendId) => {
+    try {
+      const res = await fetch(`${API_URL}/reject-friend-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({fromUserId: friendId}),
+        credentials: "include"
+      })
+
+      const data = await res.json()
+      
+      if(!res.ok) return console.log(data.message)
+      
+      console.log(data.message)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  
   return(
-    <FriendContext.Provider value={{friends , sendFriendRequest , requests , acceptFriendRequest}}>
+    <FriendContext.Provider value={{friends , sendFriendRequest , requests , acceptFriendRequest , rejectFriendRequest}}>
       {children}
     </FriendContext.Provider>
   )

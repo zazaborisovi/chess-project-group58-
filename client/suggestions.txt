@@ -1,0 +1,3 @@
+- Consider wiring the "Reject" action inside `src/pages/FriendRequest.tsx` to a helper from `useFriends()` so the UI feedback stays consistent with the accept flow.
+- In `ProfilePage`, `getSpecificChat` currently picks the first chat in `chats` instead of the one matching `friendId`; querying by friendId would prevent navigating to unrelated chats.
+- Several contexts/pages still assume synchronous socket emissions; adding cleanup (leaving rooms on unmount) will avoid duplicate listeners when switching chats.

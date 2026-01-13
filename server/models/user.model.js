@@ -4,6 +4,16 @@ const jwt = require('jsonwebtoken');
 const validator = require('validator');
 
 const UserSchema = new mongoose.Schema({
+  profilePicture: {
+    url: {
+      type: String,
+      default: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/f_auto,q_auto/profile_pictures/default`
+    },
+    publicId: {
+      type: String,
+      default: "profile_pictures/default"
+    }
+  },
   email:{
     type: String,
     required: [true , 'Email is required'],

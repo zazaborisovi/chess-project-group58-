@@ -37,9 +37,9 @@ const fetchFriends = async (req , res) =>{
   try{
     const user = req.user
     
-    await user.populate('friends' , 'username _id')
+    await user.populate('friends' , 'username _id profilePicture')
     
-    const friendArr = user.friends.map(friend => ({id: friend._id , username: friend.username}))
+    const friendArr = user.friends.map(friend => ({id: friend._id , username: friend.username , profilePicture: friend.profilePicture}))
     
     res.status(200).json({friends: friendArr})
   }catch(err){
@@ -105,4 +105,33 @@ const acceptFriendRequest = async (req , res) =>{
   }
 }
 
-module.exports = { sendFriendRequest, fetchFriends, fetchFriendRequests , acceptFriendRequest}
+const rejectFriendRequest = async (req, res) => {
+  try {
+    const { fromUserId } = req.body
+    const fromUser = await User.findById(fromUserId)
+    
+    const user = req.user
+
+    if (!fromUser) return res.status(404).json({ message: "User not found" })
+    
+    const userRequestIndex = user.friendRequests.findIndex(
+      request => request.from.equals(fromUser._id) && request.to.equals(user._id) && request.state === 'pending'
+    )
+    const fromUserRequestIndex = fromUser.friendRequests.findIndex(
+      request => request.from.equals(user._id) && request.to.equals(fromUser._id) && request.state === 'pending'
+    )
+    
+    if(userRequestIndex === -1 || fromUserRequestIndex === -1) return res.status(404).json({message: "Friend request not found"}) // in case if request index doesnt exist
+    
+    user.friendRequests.splice(userRequestIndex , 1)
+    fromUser.friendRequests.splice(fromUserRequestIndex , 1)
+    
+    await Promise.all([user.save(), fromUser.save()])
+    
+    res.status(200).json({message: "Friend request rejected"})
+  }catch(err){
+    res.status(500).json({ message: err.message})
+  }
+}
+
+module.exports = { sendFriendRequest, fetchFriends, fetchFriendRequests , acceptFriendRequest , rejectFriendRequest}

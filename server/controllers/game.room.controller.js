@@ -1,5 +1,5 @@
 const GameRoom = require('../models/game.room.model');
-const {cache , setCache} = require('../utils/cache')
+const {setGameCache, getGameCache} = require('../utils/cache')
 
 const createGameRoom = async (req , res) =>{
   try{
@@ -19,7 +19,7 @@ const createGameRoom = async (req , res) =>{
     })
     
     res.status(201).json({gameId: gameRoom.gameId , board: gameRoom.board, turn: gameRoom.turn , url: `${process.env.CLIENT_URL}/game/${gameRoom.gameId}`})
-    setCache(gameId , gameRoom)
+    setGameCache(gameId , gameRoom)
   }catch(err){
     res.status(500).json({message: err.message});
   }
@@ -29,7 +29,7 @@ const getGameRoom = async (req , res) =>{
   try{
     const {gameId} = req.params
     
-    let room = await cache.get(gameId)
+    let room = await getGameCache(gameId)
     
     const {player1 , player2} = await GameRoom.findOne({gameId}).select("player1 player2")
     

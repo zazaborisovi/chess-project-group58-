@@ -7,7 +7,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { setCache, getCache } = require('./utils/cache');
+const { setGameCache, getGameCache , setChatCache , getChatCache } = require('./utils/cache');
 const protect = require('./middleware/protect');
 
 // route imports
@@ -20,6 +20,8 @@ const chatRouter = require('./routes/chat.route');
 
 // model imports
 const GameRoom = require('./models/game.room.model');
+const Chat = require('./models/chat.model');
+const leaderboardRouter = require('./routes/leaderboard.route');
 
 // initializing express app and http server
 const app = express()
@@ -52,7 +54,7 @@ io.on("connection", (socket) =>{
   
   // joining game via gameId
   socket.on("join-game-room", async ({ gameId, user }) => {
-    let room = getCache(gameId)
+    let room = getGameCache(gameId)
     
     if (!room) {
       const dbData = await GameRoom.findOne({ gameId: gameId })
@@ -62,7 +64,7 @@ io.on("connection", (socket) =>{
           turn: dbData.turn,
           chat: dbData.chat
         }
-        setCache(gameId , room , room.chat)
+        setGameCache(gameId , room , room.chat)
       }
     }
     
@@ -92,7 +94,7 @@ io.on("connection", (socket) =>{
   
   // handling piece movement in real time via socket
   socket.on("piece-move", async(data) =>{
-    setCache(data.gameId , {board: data.board , turn: data.turn}) // sets old board to new in cache and updates turn
+    setGameCache(data.gameId , {board: data.board , turn: data.turn}) // sets old board to new in cache and updates turn
     
     io.to(data.gameId).emit("piece-moved", { // updates board and turn on client side for everyone in room
       board: data.board,
@@ -103,13 +105,23 @@ io.on("connection", (socket) =>{
     console.log(data.board , data.turn)
   })
   
-  socket.on("send-message", async({gameId , message , user}) =>{
-    const messageObj = {
-      sender: user,
-      message: message
-    }
+  socket.on("join-chat", async (chatId) => {    
+    socket.join(chatId)
+  })
+  
+  socket.on("send-message", async (data) => {
+    const chat = await Chat.findById(data.chatId)
+    setChatCache(chat._id, {
+      sender: data.senderId,
+      message: data.message
+    })
     
-    io.to(gameId).emit("message-sent", {messageObj})
+    console.log(chat)
+
+    io.to(data.chatId).emit("message-sent", {
+      sender: data.senderId,
+      message: data.message
+    })
   })
 })
 
@@ -120,6 +132,7 @@ app.use("/api/game" , roomRouter)
 app.use("/api/friends", friendRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/chats", chatRouter)
+app.use("/api/leaderboard", leaderboardRouter)
 
 // connecting to database and starting server
 mongoose.connect(process.env.MONGODB_URI)

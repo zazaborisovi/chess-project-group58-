@@ -26,11 +26,11 @@ const getChat = async (req , res) =>{
     const userId = req.user._id
     const { chatId } = req.params
     
-    const chat = await Chat.findById({ _id: chatId, users: userId })
+    const chat = await Chat.findById(chatId)
     
     if(!chat) res.status(404).json({error: 'Chat not found'});
     
-    res.status(200).json({chat});
+    res.status(200).json(chat);
   }catch(err){
     res.status(500).json({error: err.message});
   }
@@ -40,9 +40,10 @@ const getUserChats = async (req, res) => {
   try {
     const userId = req.user._id
     const chats = await Chat.find({ users: userId })
-    chats.populate('users', 'username').sort({updatedAt: -1})
-    
-    res.status(200).json({chats});
+      .populate('users' , 'username')
+      .sort({updatedAt: -1})
+
+    res.status(200).json(chats);
   }catch(err){
     res.status(500).json({error: err.message});
   }

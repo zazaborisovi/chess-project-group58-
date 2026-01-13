@@ -18,7 +18,6 @@ const ChessProvider = ({children}) =>{
   
   // to create new game room
   const [gameId , setGameId] = useState("")
-  const [chat , setChat] = useState([])
   const [playerColor , setPlayerColor] = useState("")
   
   const {user} = useAuth()
@@ -50,7 +49,7 @@ const ChessProvider = ({children}) =>{
   
   const joinGame = (id) =>{
     try{
-      window.location.href = `${API_URL}/game/${id}`
+      window.location.href = `${import.meta.env.VITE_CLIENT_URL}/game/${id}`
     }catch(err){
       console.log(err)
     }
@@ -67,20 +66,6 @@ const ChessProvider = ({children}) =>{
       socket.off("piece-moved")
     }
   }, [])
-  
-  useEffect(() => {
-    socket.on("message-sent" , ({messageObj}) =>{
-      console.log(messageObj)
-      setChat(prev => [...prev , messageObj])
-    })
-    return () => {
-      socket.off("message-sent")
-    }
-  }, [])
-  
-  const sendMessage = (message) =>{
-    socket.emit("send-message", {gameId , message, user: user.username})
-  }
   
   const updateBoardForEveryone = (newBoard: Board, nextTurn: string, { checkmate , stalemate}) =>{ // updates the board for everyone in the same game room
     if(!socket || !gameId) return console.log("Socket or gameId is undefined")
@@ -109,9 +94,6 @@ const ChessProvider = ({children}) =>{
       setCheckmate,
       createGame,
       setGameId,
-      chat,
-      setChat,
-      sendMessage
     }}>
       {children}
     </ChessContext.Provider>

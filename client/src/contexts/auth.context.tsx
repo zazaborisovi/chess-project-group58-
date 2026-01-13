@@ -139,9 +139,30 @@ export const AuthProvider = ({children}) =>{
       console.log(err)
     }
   }
+
+  const changeProfilePicture = async (file) => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      console.log(file)
+      const res = await fetch(`${API_URL}/auth/change-profile-picture`, {
+        method: 'POST',
+        body: formData,
+        credentials: "include"
+      })
+      const data = await res.json()
+      
+      if(!res.ok) return console.log(data)
+      
+      console.log(data)
+      setUser(data.updatedUser)
+    } catch (err) {
+      console.log(err)
+    }
+  }
   
   return (
-    <AuthContext.Provider value={{ user, signup, signin , googleAuth , loading , signOut}}>
+    <AuthContext.Provider value={{ user, signup, signin , googleAuth , loading , signOut , changeProfilePicture}}>
       {children}
     </AuthContext.Provider>
   )
