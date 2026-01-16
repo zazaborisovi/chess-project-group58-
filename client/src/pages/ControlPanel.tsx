@@ -2,18 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useControlPanel } from "../contexts/control.panel.context";
 import { useAuth } from "../contexts/auth.context";
 
-type ControlPanelUser = {
-  _id: string;
-  username: string;
-  email: string;
-  role: string;
-  wins: number;
-};
-
-type DraftUser = Pick<ControlPanelUser, "username" | "email" | "role"> & {
-  wins: string;
-};
-
 const roleOptions = [
   { label: "User", value: "user" },
   { label: "Moderator", value: "moderator" },
@@ -21,25 +9,32 @@ const roleOptions = [
 ];
 
 const ControlPanel = () => {
-  const {user} = useAuth()
-  const { users , setUsers , updateUser , refresh , deleteUser } = useControlPanel() as { users: ControlPanelUser[] };
+  const { user } = useAuth();
+  const { users, setUsers, updateUser, deleteUser } = useControlPanel() as any;
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<DraftUser | null>(null);
+  const [draft, setDraft] = useState<any | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     setUsers(users ?? []);
   }, [users]);
 
-  const showEmptyState = useMemo(() => !users?.length, [users]);
+  const filteredUsers = useMemo(() => {
+    return (users ?? []).filter((u: any) => 
+      u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u._id?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
 
-  const beginEditing = (user: ControlPanelUser) => {
-    setEditingUserId(user._id);
+  const beginEditing = (usr: any) => {
     setDraft({
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      wins: user.wins?.toString() ?? "0",
+      username: usr.username,
+      email: usr.email,
+      role: usr.role,
+      wins: usr.wins?.toString() ?? "0",
     });
+    setEditingUserId(usr._id);
   };
 
   const cancelEditing = () => {
@@ -47,199 +42,182 @@ const ControlPanel = () => {
     setDraft(null);
   };
 
-  const handleDraftChange = (field: keyof DraftUser, value: string) => {
-    if (!draft) return;
-    setDraft({ ...draft, [field]: value });
-  };
-
   const applyDraftChanges = () => {
     if (!draft || !editingUserId) return;
     updateUser({
       _id: editingUserId,
-      username: draft.username.trim(),
-      email: draft.email.trim(),
-      role: draft.role,
+      ...draft,
       wins: Number(draft.wins) >= 0 ? Number(draft.wins) : 0,
     });
     cancelEditing();
   };
 
-  const totalWins = useMemo(
-    () => users.reduce((sum, user) => sum + (user.wins || 0), 0),
-    [users]
-  );
-
   return (
-      <section className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4 py-10 text-slate-100">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
-          <header>
-            <p className="text-sm uppercase tracking-[0.35em] text-slate-400">Admin</p>
-            <h1 className="text-3xl font-semibold text-white">Control Panel</h1>
-            <p className="mt-2 text-base text-slate-400">
-              Review user accounts, adjust access levels and keep the community balanced. Edits here are
-              local-only until backend actions are wired up.
-            </p>
-          </header>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <PanelStat label="Total Users" value={users.length.toString()} />
-            <PanelStat label="Combined Wins" value={totalWins.toString()} />
-            <PanelStat label="Active Editors" value={editingUserId ? "1" : "0"} subtle />
+    <section className="min-h-screen bg-[#0b0f1a] px-4 py-16 text-slate-200">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
+        
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-extrabold text-white md:text-5xl">Control panel</h1>
+            <p className="text-slate-500 mt-2 text-lg">System-wide account management.</p>
           </div>
 
-        {showEmptyState ? (
-          <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 px-6 py-12 text-center">
-            <p className="text-lg text-slate-300">No users found yet.</p>
-            <p className="mt-2 text-sm text-slate-500">Invite members to populate your control panel.</p>
+          <div className="relative w-full md:w-80 group">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <svg className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input 
+              type="text"
+              placeholder="Filter users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-xl bg-slate-900/60 border border-slate-800 py-3 pl-11 pr-4 text-sm outline-none transition-all focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+            />
           </div>
-        ) : (
-          <div className="grid gap-5 md:grid-cols-2">
-            {users.map((usr) => (
-              <article
-                key={usr._id}
-                className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-xl shadow-black/40"
-              >
-                <header className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-slate-500">User ID</p>
-                    <p className="font-mono text-sm text-slate-300">{usr._id}</p>
-                  </div>
-                  <span className="rounded-full bg-emerald-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
-                    {usr.role || "player"}
-                  </span>
-                </header>
+        </header>
 
-                <div className="mt-4 space-y-1">
-                  <h2 className="text-xl font-semibold text-white">{usr.username}</h2>
-                  <p className="text-sm text-slate-400">{usr.email}</p>
-                </div>
-  
-                <dl className="mt-6 grid grid-cols-2 gap-4 text-sm text-slate-400">
-                  <div className="rounded-xl bg-slate-950/30 px-4 py-3">
-                    <dt className="text-xs uppercase tracking-widest text-slate-500">Role</dt>
-                    <dd className="text-base font-semibold text-white">{usr.role}</dd>
-                  </div>
-                  <div className="rounded-xl bg-slate-950/30 px-4 py-3">
-                    <dt className="text-xs uppercase tracking-widest text-slate-500">Wins</dt>
-                    <dd className="text-base font-semibold text-white">{usr.wins ?? 0}</dd>
-                  </div>
-                </dl>
+        <div className="flex flex-col gap-4">
+          {/* Header Row */}
+          <div className="hidden md:flex items-center px-8 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+            <span className="flex-1">Identity</span>
+            <span className="w-32">Role</span>
+            <span className="w-24 text-center">Wins</span>
+            <span className="w-32 text-right">Actions</span>
+          </div>
 
-                {editingUserId === usr._id && draft ? (
-                  <div className="mt-6 space-y-4 border-t border-slate-800 pt-6">
-                    <EditableField
-                      label="Username"
-                      value={draft.username}
-                      onChange={(value) => handleDraftChange("username", value)}
-                      placeholder="Update username"
-                    />
-                    <EditableField
-                      label="Email"
-                      value={draft.email}
-                      onChange={(value) => handleDraftChange("email", value)}
-                      placeholder="Update email"
-                      inputMode="email"
-                    />
-                    <div>
-                      <label className="text-xs uppercase tracking-widest text-slate-400">Role</label>
-                      <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-white">
-                        <select
-                          disabled={!(user.role === "admin")}
-                          className="w-full bg-transparent text-sm outline-none"
-                          value={draft.role}
-                          onChange={(event) => handleDraftChange("role", event.target.value)}
-                        >
-                          {roleOptions.map((option) => (
-                            <option className="bg-slate-900" key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((usr: any) => {
+              const isEditing = editingUserId === usr._id;
+              return (
+                <article
+                  key={usr._id}
+                  className={`flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 ${
+                    isEditing 
+                      ? "border-indigo-500 bg-slate-900 shadow-2xl ring-1 ring-indigo-500" 
+                      : "border-slate-800 bg-slate-900/40"
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center gap-4 p-6 md:px-8">
+                    {/* User Info with Profile Image */}
+                    <div className="flex flex-1 items-center gap-4 min-w-0">
+                      <div className="h-12 w-12 shrink-0 rounded-xl overflow-hidden border border-slate-700 bg-slate-800">
+                        {usr.profilePicture?.url ? (
+                          <img 
+                            src={usr.profilePicture.url} 
+                            alt={usr.username} 
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-indigo-500">
+                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <h2 className="text-lg font-bold text-white truncate">{usr.username}</h2>
+                        <p className="text-xs text-slate-500 font-mono truncate">{usr.email}</p>
                       </div>
                     </div>
-                    <EditableField
-                      label="Wins"
-                      value={draft.wins}
-                      onChange={(value) => handleDraftChange("wins", value)}
-                      placeholder="Total wins"
-                      inputMode="numeric"
-                    />
 
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        onClick={applyDraftChanges}
-                        className="flex-1 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400"
-                      >
-                        Save Changes
-                      </button>
-                      <button
-                        onClick={cancelEditing}
-                        className="flex-1 rounded-xl border border-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-slate-700 hover:text-white"
-                      >
-                        Cancel
-                      </button>
-                      <button onClick={() => deleteUser(usr)}>
-                        delete
-                      </button>
+                    <div className="w-32">
+                      <span className={`rounded-lg px-2 py-1 text-[10px] font-black uppercase tracking-widest ${
+                        usr.role === 'admin' ? 'bg-amber-500/10 text-amber-500' : 'bg-indigo-500/10 text-indigo-400'
+                      }`}>
+                        {usr.role || "player"}
+                      </span>
+                    </div>
+
+                    <div className="w-24 md:text-center">
+                      <p className="text-xl font-black text-white">{usr.wins ?? 0}</p>
+                    </div>
+
+                    <div className="w-full md:w-32 flex justify-end">
+                      {!isEditing && (
+                        <button 
+                          onClick={() => beginEditing(usr)}
+                          className="rounded-xl border border-slate-700 px-6 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+                        >
+                          Modify
+                        </button>
+                      )}
                     </div>
                   </div>
-                ) : (
-                  <div className="mt-6 flex justify-end">
-                    <button onClick={() => beginEditing(usr)}
-                      className="rounded-full border border-slate-700 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-white/40 hover:text-white"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                )}
-              </article>
-            ))}
-          </div>
+
+                  {/* Edit Form */}
+                  {isEditing && draft && (
+                    <div className="bg-slate-950/50 border-t border-slate-800 p-6 md:p-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <EditableField
+                          label="Username"
+                          value={draft.username}
+                          onChange={(v: string) => setDraft({...draft, username: v})}
+                        />
+                        <EditableField
+                          label="Email Address"
+                          value={draft.email}
+                          onChange={(v: string) => setDraft({...draft, email: v})}
+                        />
+                        <div>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Access Level</label>
+                          <select
+                            className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white outline-none focus:border-indigo-500"
+                            value={draft.role}
+                            onChange={(e) => setDraft({...draft, role: e.target.value})}
+                          >
+                            {roleOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                          </select>
+                        </div>
+                        <EditableField
+                          label="Wins"
+                          value={draft.wins}
+                          onChange={(v: string) => setDraft({...draft, wins: v})}
+                          inputMode="numeric"
+                        />
+                      </div>
+
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
+                        <button 
+                          onClick={() => { if(window.confirm("Delete account?")) deleteUser(usr) }}
+                          className="text-xs font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition"
+                        >
+                          Delete User
+                        </button>
+                        <div className="flex gap-3 w-full md:w-auto">
+                          <button onClick={cancelEditing} className="flex-1 md:flex-none rounded-xl px-6 py-3 text-sm font-bold text-slate-400 hover:text-white">
+                            Cancel
+                          </button>
+                          <button onClick={applyDraftChanges} className="flex-1 md:flex-none rounded-xl bg-indigo-600 px-8 py-3 text-sm font-bold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20">
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              );
+            })
+          ) : (
+            <div className="py-20 text-center rounded-3xl border-2 border-dashed border-slate-800/50">
+              <p className="text-slate-500 font-bold">No accounts found.</p>
+            </div>
           )}
         </div>
-      </section>
+      </div>
+    </section>
   );
 };
 
-const PanelStat = ({
-  label,
-  value,
-  subtle = false,
-}: {
-  label: string;
-  value: string;
-  subtle?: boolean;
-}) => (
-  <div
-    className={`rounded-2xl border border-slate-800 px-6 py-5 shadow-lg shadow-black/20 ${
-      subtle ? "bg-slate-900/30" : "bg-slate-900/60"
-    }`}
-  >
-    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{label}</p>
-    <p className="mt-2 text-3xl font-semibold text-white">{value}</p>
-  </div>
-);
-
-const EditableField = ({
-  label,
-  value,
-  onChange,
-  placeholder,
-  inputMode = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
-}) => (
-  <div>
-    <label className="text-xs uppercase tracking-widest text-slate-400">{label}</label>
+const EditableField = ({ label, value, onChange, inputMode = "text" }: any) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</label>
     <input
-      className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-2 text-sm text-white outline-none transition focus:border-emerald-400"
+      className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all"
       value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
       inputMode={inputMode}
     />
   </div>

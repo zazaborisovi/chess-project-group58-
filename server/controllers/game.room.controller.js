@@ -1,28 +1,52 @@
 const GameRoom = require('../models/game.room.model');
 const {setGameCache, getGameCache} = require('../utils/cache')
 
-const createGameRoom = async (req , res) =>{
+const roomInit = (player1, player2, board, private) => {
+  const gameRoom = new GameRoom({
+    gameId: Math.random().toString(36).substring(2, 10),
+    player1,
+    player2,
+    turn: "white",
+    board,
+    private,
+    chat: []
+  })
+  gameRoom.save()
+  return gameRoom
+}
+
+const createPrivateRoom = async (req , res) =>{
   try{
-    const {username , board} = req.body
+    const {board} = req.body
+    const {username} = req.user
     
-    console.log(username , board)
-    
-    const gameId = Math.random().toString(36).substring(2, 10)
-    
-    const gameRoom = await GameRoom.create({
-      gameId,
-      player1: username,
-      player2: null,
-      board: board,
-      turn: "white",
-      chat: []
-    })
+    const gameRoom = roomInit(username, null, board, false)
     
     res.status(201).json({gameId: gameRoom.gameId , board: gameRoom.board, turn: gameRoom.turn , url: `${process.env.CLIENT_URL}/game/${gameRoom.gameId}`})
-    setGameCache(gameId , gameRoom)
+    setGameCache(gameRoom.gameId , gameRoom)
   }catch(err){
     res.status(500).json({message: err.message});
   }
+}
+
+const createPublicRoom = async (req, res) => {
+  const {board} = req.body
+  const {username} = req.user
+  
+  let gameRoom = await GameRoom.findOne({ player2: null, private: false, player1: { $ne: username, $exists: true } })
+  
+  if (gameRoom) {
+    gameRoom.player2 = username
+    await gameRoom.save()
+    res.status(200).json({ gameId: gameRoom.gameId, board: gameRoom.board, turn: gameRoom.turn, url: `${process.env.CLIENT_URL}/game/${gameRoom.gameId}` })
+    setGameCache(gameRoom.gameId, gameRoom)
+    return
+  }
+  
+  gameRoom = roomInit(username, null, board, false)
+  
+  res.status(200).json({ gameId: gameRoom.gameId, board: gameRoom.board, turn: gameRoom.turn, url: `${process.env.CLIENT_URL}/game/${gameRoom.gameId}` })
+  setGameCache(gameRoom.gameId, gameRoom)
 }
 
 const getGameRoom = async (req , res) =>{
@@ -48,4 +72,4 @@ const getGameRoom = async (req , res) =>{
   }
 }
 
-module.exports = {createGameRoom, getGameRoom}
+module.exports = {createPrivateRoom, getGameRoom , createPublicRoom}

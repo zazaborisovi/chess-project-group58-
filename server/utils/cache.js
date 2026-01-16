@@ -10,8 +10,8 @@ const getGameCache = (id) => {
   return gameCache.get(id)
 }
 
-const setGameCache = (id , { board , turn , chat}) => {
-  gameCache.set(id , { board , turn , chat})
+const setGameCache = (id , { player1 , player2 , board , turn , chat }) => {
+  gameCache.set(id , {player1 , player2 , board , turn , chat})
   
   saveGameToDatabase(id)
   
@@ -41,18 +41,18 @@ const getChatCache = (chatId) => {
 }
 
 const setChatCache = async(chatId, message) => {
-  let chat = getChatCache(chatId);
+  let chat = getChatCache(chatId)
+  
+  console.log(message)
 
   if (!chat) {
-    // Fetch from DB once
-    const dbChat = await Chat.findById(chatId);
+    const dbChat = await Chat.findById(chatId)
 
-    chat = { messages: dbChat?.messages || [] };
-    chatCache.set(chatId, chat);  // ✅ initialize cache
-    console.log(`Chat cache initialized for ${chatId}`);
+    chat = { messages: dbChat?.messages || [] }
+    chatCache.set(chatId, chat)
+    console.log(`Chat cache initialized for ${chatId}`)
   }
 
-  // Append the new message
   chatCache.set(chatId, {
     ...chat,
     messages: [...chat.messages, message],
@@ -60,7 +60,7 @@ const setChatCache = async(chatId, message) => {
   
   saveChatToDatabase(chatId)
   
-  return console.log(`Cache set for chat ${chatId}`)
+  return console.log(`Cache set for chat ${chatId} , ${chat.messages}`)
 }
 
 function saveChatToDatabase(chatId){

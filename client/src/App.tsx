@@ -12,12 +12,13 @@ import FriendRequestPage from './pages/FriendRequest.tsx';
 import NavComponent from './pages/components/Nav.tsx';
 import ControlPanelProvider from './contexts/control.panel.context.tsx';
 import ControlPanel from './pages/ControlPanel.tsx';
-import {useAuth} from './contexts/auth.context';
+import {AuthProvider, useAuth} from './contexts/auth.context';
 import ChatProvider from './contexts/chat.context.tsx';
 import ChatPage from './pages/Chat.tsx';
 import ProfilePage from './pages/Profile.tsx';
 import LeaderboardPage from './pages/Leaderboard.tsx';
 import LeaderBoardProvider from './contexts/leaderboard.context.tsx';
+import SocketProvider from './contexts/utils/socket.context.tsx';
 
 export default function App() {
   const {user} = useAuth()
@@ -26,77 +27,75 @@ export default function App() {
     <>
       {/*<Board />*/}
       <NavComponent />
-      <Routes>
-        <Route path="/" element={
-          <Protect>
-            <ChessProvider>
-              <GameRoom />
-            </ChessProvider>
-          </Protect>
-        }/>
-        <Route path='/friends' element={
-          <Protect>
-            <ChatProvider>
+      <SocketProvider>
+        <ChatProvider>
+        <Routes>
+          <Route path="/game" element={
+              <AuthProvider>
+                <Protect>
+                  <ChessProvider>
+                    <GameRoom />
+                  </ChessProvider>
+                </Protect>
+              </AuthProvider>
+          }/>
+          <Route path='/friends' element={
+            <Protect>
               <FriendProvider>
                 <Friends/>
               </FriendProvider>
-            </ChatProvider>
-          </Protect>
-        }/>
-        <Route path='/friend-requests' element={
-          <Protect>
-            <ChatProvider>
+            </Protect>
+          }/>
+          <Route path='/requests' element={
+            <Protect>
               <FriendProvider>
                 <FriendRequestPage/>
               </FriendProvider>
-            </ChatProvider>
-          </Protect>
-        }/>
-        <Route path="/game/:id" element={
-          <Protect>
-            <ChessProvider>
-              <BoardComponent />
-            </ChessProvider>
-          </Protect>
-        } />
-        <Route path="/chat/:chatId" element={
-          <Protect>
-            <ChatProvider>
+            </Protect>
+          }/>
+          <Route path="/game/:id" element={
+            <Protect>
+              <ChessProvider>
+                <BoardComponent />
+              </ChessProvider>
+            </Protect>
+          } />
+          <Route path="/chat/:chatId" element={
+            <Protect>
               <ChatPage />
-            </ChatProvider>
-          </Protect>
-        } />
-        <Route path="/profile" element={
-          <Protect>
-            <ChatProvider>
+            </Protect>
+          } />
+          <Route path="/profile" element={
+            <Protect>
               <FriendProvider>
                 <ProfilePage />
               </FriendProvider>
-            </ChatProvider>
-          </Protect>
-        } />
-        {
-          user?.role === "admin" || user?.role === "moderator" ? (
-            <Route path="/control-panel" element={
-              <Protect>
-                <ControlPanelProvider>
-                  <ControlPanel />
-                </ControlPanelProvider>
-              </Protect>
-            }/>
-          ) : null
-        }
-        <Route path="/leaderboard" element={
-          <Protect>
-            <LeaderBoardProvider>
-              <LeaderboardPage />
-            </LeaderBoardProvider>
-          </Protect>
-        } />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/signin" element={<Signin />} />
-        {/*<Route path="/profile" element={<Profile />} />*/}
-      </Routes>
+            </Protect>
+          } />
+          {
+            user?.role === "admin" || user?.role === "moderator" ? (
+              <Route path="/control-panel" element={
+                <Protect>
+                  <ControlPanelProvider>
+                    <ControlPanel />
+                  </ControlPanelProvider>
+                </Protect>
+              }/>
+            ) : null
+          }
+          <Route path="/leaderboard" element={
+            <Protect>
+              <LeaderBoardProvider>
+                <LeaderboardPage />
+              </LeaderBoardProvider>
+            </Protect>
+          } />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/signin" element={<Signin />} />
+          {/*<Route path="/profile" element={<Profile />} />*/}
+          </Routes>
+        </ChatProvider>
+      </SocketProvider>
       <ToastContainer />
     </>
   )

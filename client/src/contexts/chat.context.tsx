@@ -1,6 +1,8 @@
 import { createContext, useContext , useEffect , useState } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "./auth.context";
+import { useNavigate } from "react-router";
+import { useSocket } from "./utils/socket.context";
 
 const API_URL = import.meta.env.VITE_API_URL + "/chats"
 
@@ -9,14 +11,15 @@ const ChatContext = createContext()
 export const useChat = () => useContext(ChatContext)
 
 const ChatProvider = ({ children }) => {
-  const user = useAuth()
   
   const [chats, setChats] = useState([])
   const [currentChat, setCurrentChat] = useState(null)
   const [chatId, setChatId] = useState(null)
   
-  const socket = io(import.meta.env.VITE_BACKEND_URL)
+  const socket = useSocket()
 
+  const redirect = useNavigate()
+  
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -41,12 +44,16 @@ const ChatProvider = ({ children }) => {
     fetchChats()
   }, [])
   
-  const sendMessage = async ({chatId , message , senderId}) => {
-    socket.emit("send-message", { chatId, message , senderId })
+  const sendMessage = async ({chatId , message }) => {
+    socket.emit("send-message", { chatId, message })
   }
   
   useEffect(() => {
     socket.on("message-sent", message => {
+      if (!socket) {
+          console.warn("ChatProvider: Socket not initialized yet");
+          return;
+      }
       console.log(message)
       setCurrentChat((prev) => ({
         ...prev,
@@ -55,7 +62,7 @@ const ChatProvider = ({ children }) => {
     })
     
     return () => socket.off("message-sent")
-  }, [])
+  }, [socket])
   
   const createChat = async (friendId) => {
     try {
@@ -80,7 +87,6 @@ const ChatProvider = ({ children }) => {
 
   const getChat = async (chatId) => {
     try {
-      console.log(chatId)
       const res = await fetch(`${API_URL}/${chatId}`, {
         method: 'GET',
         headers: {
@@ -101,8 +107,17 @@ const ChatProvider = ({ children }) => {
     }
   }
   
+  const getSpecificChat = async (friendId) => {
+    let chat = chats.some(chat => chat.users.find(user => user._id === friendId))
+    
+    if (chat) {
+      const chatId = chats.find(chat => chat._id)._id
+      redirect(`/chat/${chatId}`)
+    }
+  }
+  
   return (
-    <ChatContext.Provider value={{chats, currentChat, chatId , setChatId , createChat, getChat , sendMessage , socket}}>
+    <ChatContext.Provider value={{chats, currentChat, chatId , setChatId , createChat, getChat , sendMessage , socket, getSpecificChat}}>
       {children}
     </ChatContext.Provider>
   )

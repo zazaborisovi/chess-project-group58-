@@ -8,7 +8,6 @@ authRouter.post("/signup" , signup)
 authRouter.post("/signin" , signin)
 
 authRouter.post("/auto-signin", protect, (req , res) =>{
-  console.log(req.user)
   res.status(200).json(req.user)
 })
 

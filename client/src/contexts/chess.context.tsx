@@ -2,6 +2,7 @@ import { createContext, useState , useEffect, useContext } from "react";
 import { io } from "socket.io-client";
 import type { Board } from "../types/chess.types";
 import { useAuth } from "./auth.context";
+import { useSocket } from "./utils/socket.context";
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -20,19 +21,16 @@ const ChessProvider = ({children}) =>{
   const [gameId , setGameId] = useState("")
   const [playerColor , setPlayerColor] = useState("")
   
-  const {user} = useAuth()
+  const socket = useSocket()
   
-  const socket = io(import.meta.env.VITE_BACKEND_URL)
-  
-  // creates new game room with link and redirects us to it
-  const createGame = async(username , board) => {
+  const createPrivateGame = async(board) => {
     try{
-      const res = await fetch(`${API_URL}/game/create`,{
+      const res = await fetch(`${API_URL}/game/private`,{
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({username , board}),
+        body: JSON.stringify({board}),
         credentials: "include"
       })
       
@@ -41,7 +39,27 @@ const ChessProvider = ({children}) =>{
       if(!res.ok) return console.log(data.message)
       
       window.location.href = data.url
+    }catch(err){
+      console.log(err)
+    }
+  }
+  
+  const joinRandomGame = async (board) => { // creates new game room if no game is available
+    try {
+      const res = await fetch(`${API_URL}/game/public`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({board}),
+        credentials: "include"
+      })
       
+      const data = await res.json()
+      
+      if(!res.ok) return console.log(data.message)
+      
+      window.location.href = data.url
     }catch(err){
       console.log(err)
     }
@@ -92,8 +110,9 @@ const ChessProvider = ({children}) =>{
       setStalemate,
       checkmate,
       setCheckmate,
-      createGame,
+      createPrivateGame,
       setGameId,
+      joinRandomGame
     }}>
       {children}
     </ChessContext.Provider>

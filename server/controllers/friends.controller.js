@@ -54,13 +54,10 @@ const fetchFriendRequests = async (req , res) =>{
     await user.populate('friendRequests.from' , 'username _id')
     await user.populate('friendRequests.to' , 'username _id')
     
-    console.log(user , user._id , "hereeeeeeeeeeeeee")
-    
     const requests = user.friendRequests.filter(
       request => request.to.equals(user._id) && request.state === 'pending'
     )
     
-    console.log(requests)
     res.status(200).json({requests: requests})
   }catch(err){
     res.status(500).json({message: err.message})

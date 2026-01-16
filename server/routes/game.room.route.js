@@ -1,8 +1,9 @@
 const roomRouter = require("express").Router();
-const {createGameRoom, getGameRoom} = require("../controllers/game.room.controller");
+const {createPrivateRoom, getGameRoom, createPublicRoom} = require("../controllers/game.room.controller");
 const {protect} = require("../middleware/protect");
 
-roomRouter.post("/create", createGameRoom);
-roomRouter.get("/:gameId", getGameRoom);
+roomRouter.post("/private", protect , createPrivateRoom);
+roomRouter.post("/public", protect , createPublicRoom)
+roomRouter.get("/:gameId", protect , getGameRoom);
 
 module.exports = roomRouter

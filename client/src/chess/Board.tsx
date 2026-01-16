@@ -32,7 +32,7 @@ export default function BoardComponent(){
     const path = window.location.pathname
     const newGameId = path.split("/")[2]
     
-    socket.emit("join-game-room" , {gameId: newGameId , user: user.username})
+    socket.emit("join-game-room" , newGameId)
     socket.on("player-joined" , ({playerColor , opponent}) =>{
       setPlayerColor(playerColor)
       setOpponent(opponent)

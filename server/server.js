@@ -8,7 +8,6 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { setGameCache, getGameCache , setChatCache , getChatCache } = require('./utils/cache');
-const protect = require('./middleware/protect');
 
 // route imports
 const authRouter = require('./routes/auth.route');
@@ -22,6 +21,7 @@ const chatRouter = require('./routes/chat.route');
 const GameRoom = require('./models/game.room.model');
 const Chat = require('./models/chat.model');
 const leaderboardRouter = require('./routes/leaderboard.route');
+const { socketProtect } = require('./middleware/protect');
 
 // initializing express app and http server
 const app = express()
@@ -43,8 +43,13 @@ const io = new Server(httpServer, {
   }
 })
 
+io.use(socketProtect)
+
 // using socket
-io.on("connection", (socket) =>{
+io.on("connection", (socket) => {
+  
+  const user = socket.request.user
+  
   socket.on("create-game-room" , async ({gameId}) =>{
     const room = await GameRoom.findOne(gameId)
     socket.join(room.gameId)
@@ -53,8 +58,10 @@ io.on("connection", (socket) =>{
   })
   
   // joining game via gameId
-  socket.on("join-game-room", async ({ gameId, user }) => {
+  socket.on("join-game-room", async (gameId) => {
     let room = getGameCache(gameId)
+    
+    console.log(gameId)
     
     if (!room) {
       const dbData = await GameRoom.findOne({ gameId: gameId })
@@ -68,15 +75,13 @@ io.on("connection", (socket) =>{
       }
     }
     
-    console.log(room) // debugging purposes
-    
     if (!room) return console.log("game not found")
     
     const {player1 , player2} = await GameRoom.findOne({gameId: gameId}) // gets player1 and player2 from database
-    const isPlayer1 = user === player1
+    const isPlayer1 = user.username === player1
     
     if (!player2 && !isPlayer1){
-      await GameRoom.findOneAndUpdate({gameId: gameId}, {player2: user})
+      await GameRoom.findOneAndUpdate({gameId: gameId}, {player2: socket.request.user.username})
     }
     
     socket.emit("player-joined", {
@@ -102,7 +107,6 @@ io.on("connection", (socket) =>{
       checkmate: data.checkmate,
       stalemate: data.stalemate
     })
-    console.log(data.board , data.turn)
   })
   
   socket.on("join-chat", async (chatId) => {    
@@ -111,16 +115,26 @@ io.on("connection", (socket) =>{
   
   socket.on("send-message", async (data) => {
     const chat = await Chat.findById(data.chatId)
+    const senderId = user._id
     setChatCache(chat._id, {
-      sender: data.senderId,
+      sender: senderId,
       message: data.message
     })
-    
-    console.log(chat)
 
     io.to(data.chatId).emit("message-sent", {
-      sender: data.senderId,
+      sender: senderId,
       message: data.message
+    })
+  })
+  
+  socket.on("send-message-game", async (data) => {
+    const gameRoom = getGameCache(data.gameId)
+    setGameCache(data.gameId, {
+      ...gameRoom,
+      messages: [...gameRoom.messages, {
+        sender: data.senderId,
+        message: data.message
+      }]
     })
   })
 })
