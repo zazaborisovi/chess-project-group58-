@@ -3,6 +3,8 @@ import { useAuth } from "../contexts/auth.context";
 import { useForm } from "../hooks/useForm";
 import { Link } from "react-router";
 
+const API_URL = import.meta.env.VITE_API_URL
+
 const Signin = () => {
   const { signin, googleAuth } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
@@ -20,7 +22,7 @@ const Signin = () => {
     // 1. Open popup (User-initiated interaction for Safari)
     // We point this to your Render ping route
     const popup = window.open(
-        "https://rechess-api.onrender.com/api/ping", 
+        `${API_URL}/api/ping`, 
         "ArenaSync", 
         "width=1,height=1,left=1000,top=1000"
     );
@@ -28,7 +30,7 @@ const Signin = () => {
     // 2. Poll the server until it responds
     const checkServer = setInterval(async () => {
       try {
-        const response = await fetch("https://rechess-api.onrender.com/api/ping");
+        const response = await fetch(`${API_URL}/api/ping`);
         if (response.ok) {
           if (popup) popup.close();
           setIsConnected(true);
