@@ -22,7 +22,7 @@ const SignUp = () => {
     
     // 1. Open popup (User-initiated interaction for Safari trust)
     const popup = window.open(
-        `${API_URL}/api/ping`, 
+        `${API_URL}/ping`, 
         "ArenaSync", 
         "width=1,height=1,left=1000,top=1000"
     );
@@ -30,7 +30,7 @@ const SignUp = () => {
     // 2. Poll the server until it responds
     const checkServer = setInterval(async () => {
       try {
-        const response = await fetch(`${API_URL}/api/ping`);
+        const response = await fetch(`${API_URL}/ping`);
         if (response.ok) {
           if (popup) popup.close();
           setIsConnected(true);
