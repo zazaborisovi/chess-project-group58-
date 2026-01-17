@@ -25,7 +25,7 @@ const Navbar = () => {
   // Determine links based on Auth state
   const navLinks = isLoggedIn
     ? [
-        { name: "Play", path: "/game" },
+        { name: "Play", path: "/" },
         { name: "Social", path: "/friends" },
         { name: "Requests", path: "/requests" },
         { name: "Leaderboard", path: "/leaderboard" },

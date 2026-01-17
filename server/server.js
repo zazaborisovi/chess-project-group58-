@@ -26,6 +26,7 @@ const User = require('./models/user.model');
 
 // initializing express app and http server
 const app = express()
+app.set("trust proxy", 1)
 const httpServer = http.createServer(app)
 
 // middlewares

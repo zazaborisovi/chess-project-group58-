@@ -32,7 +32,7 @@ export default function App() {
       <SocketProvider>
         <ChatProvider>
         <Routes>
-          <Route path="/game" element={
+          <Route path="/" element={
               <AuthProvider>
                 <Protect>
                   <ChessProvider>
@@ -94,8 +94,7 @@ export default function App() {
           } />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<Signin />} />
-          {/*<Route path="/profile" element={<Profile />} />*/}
-          </Routes>
+        </Routes>
         </ChatProvider>
       </SocketProvider>
       <ToastContainer />
