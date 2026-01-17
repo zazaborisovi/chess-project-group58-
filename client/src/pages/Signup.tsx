@@ -98,4 +98,6 @@ const SignUp = () => {
       </div>
     </section>
   );
-}; 
+};
+
+export default Signup;
