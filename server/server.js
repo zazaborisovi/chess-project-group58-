@@ -155,18 +155,6 @@ app.use("/api/friends", friendRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/chats", chatRouter)
 app.use("/api/leaderboard", leaderboardRouter)
-app.get('/api/ping', (req, res) => {
-  res.send(`
-    <html>
-      <body style="background:#0b0f1a; color:white; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh;">
-        <div style="text-align:center;">
-          <h1 style="font-size:14px; letter-spacing:2px;">ARENA SYNCED</h1>
-          <p style="font-size:10px; color:#64748b;">This window will close automatically.</p>
-        </div>
-      </body>
-    </html>
-  `);
-});
 
 // connecting to database and starting server
 mongoose.connect(process.env.MONGODB_URI)
