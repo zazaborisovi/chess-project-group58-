@@ -63,7 +63,7 @@ const FriendRequestPage = () => {
                     {request.from.username}
                   </h3>
                   <p className="text-xs font-mono text-slate-500 uppercase tracking-wider">
-                    UID: {request.from._id?.slice(-10)}
+                    UID: {request.from._id?.slice(0 , -10)}...
                   </p>
                 </div>
               </div>

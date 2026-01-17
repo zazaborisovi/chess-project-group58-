@@ -5,7 +5,7 @@ import { useChat } from "@/contexts/chat.context";
 
 const Friends = () => {
   const [formData, handleChange] = useForm({ friendId: "" });
-  const { friends, sendFriendRequest } = useFriends();
+  const { friends, sendFriendRequest , removeFriend } = useFriends();
   const { getSpecificChat } = useChat();
   const [openMenu, setOpenMenu] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,7 +133,7 @@ const Friends = () => {
                       <div className="absolute right-0 top-14 z-50 w-48 rounded-xl border border-slate-800 bg-[#161b2a] p-2 shadow-2xl">
                         <button 
                           className="w-full rounded-lg px-4 py-3 text-left text-sm font-bold text-red-400 transition hover:bg-red-500/10"
-                          onClick={() => setOpenMenu(null)}
+                          onClick={() => removeFriend(friend.id)}
                         >
                           Remove Friend
                         </button>

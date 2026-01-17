@@ -131,4 +131,29 @@ const rejectFriendRequest = async (req, res) => {
   }
 }
 
-module.exports = { sendFriendRequest, fetchFriends, fetchFriendRequests , acceptFriendRequest , rejectFriendRequest}
+const removeFriend = async (req, res) => {
+  try {
+    const { friendId } = req.body
+    const user = req.user
+    
+    const friend = await User.findById(friendId)
+    
+    if (!friend) return res.status(404).json({ message: "Friend not found" })
+    
+    const userFriendIndex = user.friends.findIndex(friend => friend.equals(friendId))
+    const friendUserIndex = friend.friends.findIndex(friend => friend.equals(user._id))
+    
+    if(userFriendIndex === -1 || friendUserIndex === -1) return res.status(404).json({message: "Friend not found"})
+    
+    user.friends.splice(userFriendIndex , 1)
+    friend.friends.splice(friendUserIndex , 1)
+    
+    await Promise.all([user.save(), friend.save()])
+    
+    res.status(200).json({message: "Friend removed"})
+  }catch(err){
+    res.status(500).json({ message: err.message})
+  }
+}
+
+module.exports = { sendFriendRequest, fetchFriends, fetchFriendRequests , acceptFriendRequest , rejectFriendRequest , removeFriend}

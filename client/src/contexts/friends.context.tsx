@@ -125,8 +125,29 @@ const FriendProvider = ({ children }) => {
     }
   }
   
+  const removeFriend = async (friendId) => {
+    try {
+      const res = await fetch(`${API_URL}/remove-friend`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({friendId}),
+        credentials: "include"
+      })
+
+      const data = await res.json()
+      
+      if(!res.ok) return console.log(data.message)
+      
+      console.log(data.message)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  
   return(
-    <FriendContext.Provider value={{friends , sendFriendRequest , requests , acceptFriendRequest , rejectFriendRequest}}>
+    <FriendContext.Provider value={{friends , sendFriendRequest , requests , acceptFriendRequest , rejectFriendRequest , removeFriend}}>
       {children}
     </FriendContext.Provider>
   )

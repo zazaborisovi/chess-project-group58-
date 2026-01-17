@@ -22,6 +22,7 @@ const GameRoom = require('./models/game.room.model');
 const Chat = require('./models/chat.model');
 const leaderboardRouter = require('./routes/leaderboard.route');
 const { socketProtect } = require('./middleware/protect');
+const User = require('./models/user.model');
 
 // initializing express app and http server
 const app = express()
@@ -107,6 +108,12 @@ io.on("connection", (socket) => {
       checkmate: data.checkmate,
       stalemate: data.stalemate
     })
+    
+    if (data.checkmate) {
+      const user = await User.findById(socket.request.user._id)
+      user.wins += 1
+      await user.save()
+    }
   })
   
   socket.on("join-chat", async (chatId) => {    

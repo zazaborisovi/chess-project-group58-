@@ -26,7 +26,9 @@ export default function App() {
   return(
     <>
       {/*<Board />*/}
-      <NavComponent />
+      <AuthProvider>
+        <NavComponent />
+      </AuthProvider>
       <SocketProvider>
         <ChatProvider>
         <Routes>
