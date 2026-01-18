@@ -2,11 +2,18 @@ import { useState } from "react";
 import { useForm } from "../hooks/useForm";
 import { useFriends } from "../contexts/friends.context";
 import { useChat } from "@/contexts/chat.context";
+import { initBoard } from "@/chess/init.board";
+import { useNavigate } from "react-router";
+import { useChess } from "@/contexts/chess.context";
+import { useSocket } from "@/contexts/utils/socket.context";
 
 const Friends = () => {
   const [formData, handleChange] = useForm({ friendId: "" });
-  const { friends, sendFriendRequest , removeFriend } = useFriends();
+  const navigate = useNavigate()
+  const socket = useSocket();
+  const { friends, sendFriendRequest, removeFriend , handleInvite } = useFriends();
   const { getSpecificChat } = useChat();
+  const { createPrivateGame } = useChess();
   const [openMenu, setOpenMenu] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -19,6 +26,24 @@ const Friends = () => {
     friend?.username?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleInviteClick = async(userId) => {
+    try {
+      const data = await createPrivateGame(initBoard())
+      if (data && data.gameId) {
+            socket.emit("invite-user", {
+              userId: userId,
+              gameId: data.gameId
+            });
+            setTimeout(() => {
+              window.location.href = `${import.meta.env.VITE_CLIENT_URL}/game/${data.gameId}`;
+            }, 150);
+          }
+    } catch (error) {
+        console.error("Failed to create room:", error);
+    }
+  };
+
+  
   return (
     <section className="min-h-screen bg-[#0b0f1a] px-4 py-16 text-slate-200">
       <div className="mx-auto w-full max-w-3xl">
@@ -116,7 +141,7 @@ const Friends = () => {
                   >
                     Message
                   </button>
-                  <button className="flex-1 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-indigo-500 sm:flex-none shadow-lg shadow-indigo-900/20">
+                  <button className="flex-1 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-indigo-500 sm:flex-none shadow-lg shadow-indigo-900/20" onClick={() => handleInviteClick(friend.id)}>
                     Invite
                   </button>
                   

@@ -10,10 +10,12 @@ const checkTeamPiece = (board: Board , row: number , col:number , piece: Piece) 
 function getPawnMoves(board: Board, fromRow: number, fromCol: number, piece: Piece) {
   const direction = piece.color === "white" ? -1 : 1;
   const moves = []
-
   const oneStep = fromRow + direction // creating oneStep variable for pawns one square forward move
+  const isPromotionRank = (piece.color === "white" && oneStep === 0) || (piece.color === "black" && oneStep === 7)
+  
+  
   if (isInBoard(oneStep, fromCol) && !board[oneStep][fromCol].piece) { // checks if the square in front of the pawn is empty(row square) and adds it to moves if it is
-    moves.push({ row: oneStep, col: fromCol })
+    moves.push({ row: oneStep, col: fromCol , name: isPromotionRank ? "promotion" : undefined})
     
     if (!piece.hasMoved) { // if pawn has not moved yet it can move two squares forward
       const twoSteps = fromRow + direction * 2
@@ -37,18 +39,13 @@ function getPawnMoves(board: Board, fromRow: number, fromCol: number, piece: Pie
     }
   }
   
-  const attacks = [
-    { row: oneStep, col: fromCol + 1 },
-    { row: oneStep, col: fromCol - 1 }
-  ]
+  const attacks = [fromCol - 1 , fromCol + 1]
   
-  attacks.forEach(({ row, col }) =>{ // checks if the square is in board and if there is an enemy piece on that square    
-    if (isInBoard(row , col) && board[row][col].piece && board[row][col].piece.color !== piece.color){
-      const promotion = (piece.color == "white" && oneStep == 0) || (piece.color == "black" && oneStep == 7)
-      if (promotion){
-        moves.push({ row: oneStep, col: fromCol , name:"promotion"})
-      }else{
-        moves.push({ row, col })
+  attacks.forEach(col => {
+    if (isInBoard(oneStep, col)) {
+      const targetPiece = board[oneStep][col].piece
+      if (targetPiece && targetPiece.color !== piece.color) {
+        moves.push({ row: oneStep, col , name: isPromotionRank ? "promotion" : undefined})
       }
     }
   })

@@ -42,10 +42,12 @@ export default function App() {
               </AuthProvider>
           }/>
           <Route path='/friends' element={
-            <Protect>
-              <FriendProvider>
-                <Friends/>
-              </FriendProvider>
+              <Protect>
+              <ChessProvider>
+                <FriendProvider>
+                  <Friends/>
+                </FriendProvider>
+              </ChessProvider>
             </Protect>
           }/>
           <Route path='/requests' element={

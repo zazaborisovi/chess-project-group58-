@@ -1,6 +1,4 @@
 import { createContext, useContext , useEffect , useState } from "react";
-import { io } from "socket.io-client";
-import { useAuth } from "./auth.context";
 import { useNavigate } from "react-router";
 import { useSocket } from "./utils/socket.context";
 
@@ -62,7 +60,7 @@ const ChatProvider = ({ children }) => {
     })
     
     return () => socket.off("message-sent")
-  }, [socket])
+  }, [])
   
   const createChat = async (friendId) => {
     try {
@@ -108,11 +106,12 @@ const ChatProvider = ({ children }) => {
   }
   
   const getSpecificChat = async (friendId) => {
-    let chat = chats.some(chat => chat.users.find(user => user._id === friendId))
+    const existingChat = chats.find(chat => 
+      chat.users.some(u => u._id === friendId)
+    )
     
-    if (chat) {
-      const chatId = chats.find(chat => chat._id)._id
-      redirect(`/chat/${chatId}`)
+    if (existingChat) {
+      redirect(`/chat/${existingChat._id}`)
     }
   }
   

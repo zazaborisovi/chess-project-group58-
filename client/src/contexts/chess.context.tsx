@@ -38,7 +38,7 @@ const ChessProvider = ({children}) =>{
       
       if(!res.ok) return console.log(data.message)
       
-      window.location.href = data.url
+      return data
     }catch(err){
       console.log(err)
     }
@@ -93,7 +93,7 @@ const ChessProvider = ({children}) =>{
     setTurn(nextTurn)
     console.log(board , turn)
   }
-
+  
   return(
     <ChessContext.Provider value={{
       socket,
@@ -112,7 +112,7 @@ const ChessProvider = ({children}) =>{
       setCheckmate,
       createPrivateGame,
       setGameId,
-      joinRandomGame
+      joinRandomGame,
     }}>
       {children}
     </ChessContext.Provider>

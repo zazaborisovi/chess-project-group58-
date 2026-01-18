@@ -48,9 +48,20 @@ const io = new Server(httpServer, {
 io.use(socketProtect)
 
 // using socket
-io.on("connection", (socket) => {
-  
+io.on("connection", (socket) => {  
   const user = socket.request.user
+  
+  if (user._id) {
+    socket.join(`user_${user._id}`)
+  }
+  
+  socket.on("invite-user", (data) => {
+    console.log("Invite received" , data)
+    io.to(`user_${data.userId}`).emit("receive-invite", {
+      sender: { _id: user._id, username: user.username, profilePicture: user.profilePicture.url },
+      gameId: data.gameId
+    })
+  })
   
   socket.on("create-game-room" , async ({gameId}) =>{
     const room = await GameRoom.findOne(gameId)
@@ -123,16 +134,15 @@ io.on("connection", (socket) => {
   
   socket.on("send-message", async (data) => {
     const chat = await Chat.findById(data.chatId)
-    const senderId = user._id
-    setChatCache(chat._id, {
-      sender: senderId,
+    
+    const message = {
+      sender: {_id: user._id, username: user.username , profilePicture: user.profilePicture.url},
       message: data.message
-    })
+    }
+    
+    setChatCache(chat._id, message)
 
-    io.to(data.chatId).emit("message-sent", {
-      sender: senderId,
-      message: data.message
-    })
+    io.to(data.chatId).emit("message-sent", message)
   })
   
   socket.on("send-message-game", async (data) => {

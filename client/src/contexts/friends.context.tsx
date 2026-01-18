@@ -1,5 +1,6 @@
 import { createContext , useContext, useEffect, useState } from "react";
 import { useChat } from "./chat.context";
+import { useSocket } from "./utils/socket.context";
 
 const API_URL = import.meta.env.VITE_API_URL + "/friends"
 
@@ -8,6 +9,7 @@ const FriendContext = createContext()
 export const useFriends = () => useContext(FriendContext)
 
 const FriendProvider = ({ children }) => {
+  const socket = useSocket()
   const {createChat} = useChat()
   const [friends , setFriends] = useState([])
   const [requests , setRequests] = useState([])
@@ -146,8 +148,12 @@ const FriendProvider = ({ children }) => {
     }
   }
   
+  const handleInvite = (data) => {
+    socket.emit("invite-user" , {userId: data.userId , gameId: data.gameId})
+  }
+  
   return(
-    <FriendContext.Provider value={{friends , sendFriendRequest , requests , acceptFriendRequest , rejectFriendRequest , removeFriend}}>
+    <FriendContext.Provider value={{friends , sendFriendRequest , requests , acceptFriendRequest , rejectFriendRequest , removeFriend , handleInvite}}>
       {children}
     </FriendContext.Provider>
   )
