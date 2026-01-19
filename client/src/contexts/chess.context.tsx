@@ -68,7 +68,7 @@ const ChessProvider = ({children}) =>{
   
   const joinGame = (id) =>{
     try{
-      window.location.href = `${import.meta.env.VITE_CLIENT_URL}/game/${id}`
+      window.location.href = `/game/${id}`
     }catch(err){
       console.log(err)
     }
