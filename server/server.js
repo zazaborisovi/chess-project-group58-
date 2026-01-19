@@ -121,6 +121,8 @@ io.on("connection", (socket) => {
       stalemate: data.stalemate
     })
     
+    const gameRoom = await GameRoom.findById(data.gameId)
+    
     if (data.checkmate) {
       const user = await User.findById(socket.request.user._id)
       gameRoom.gameStatus = "finished"

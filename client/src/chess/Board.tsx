@@ -336,7 +336,7 @@ export default function BoardComponent() {
                       <button onClick={joinRandomGame} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all active:scale-[0.98]">
                       Play Again
                     </button>
-                    <button onClick={() => navigate('/')} className="w-full py-4 bg-white/5 hover:bg-white/10 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl border border-white/5 transition-all">
+                    <button onClick={() => window.location.href = "/"} className="w-full py-4 bg-white/5 hover:bg-white/10 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl border border-white/5 transition-all">
                       Leave Arena
                     </button>
                   </div>
