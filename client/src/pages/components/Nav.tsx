@@ -18,7 +18,7 @@ const Navbar = () => {
     document.body.style.overflow = isOpen ? "hidden" : "unset";
   }, [isOpen]);
 
-  const isLoggedIn = !!user;
+  const isLoggedIn = user?._id
 
   const navLinks = isLoggedIn
     ? [
@@ -60,11 +60,16 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-5">
-           {isLoggedIn && (
-             <Link to="/profile" className="size-8 rounded-full overflow-hidden border border-indigo-500/50">
-               <img src={user?.profilePicture?.url || `https://ui-avatars.com/api/?name=${user?.username}`} className="size-full object-cover" alt="Profile" />
-             </Link>
-           )}
+          {isLoggedIn && (
+            <>
+              <Link to="/profile" className="size-8 rounded-full overflow-hidden border border-indigo-500/50">
+                <img src={user?.profilePicture?.url || `https://ui-avatars.com/api/?name=${user?.username}`} className="size-full object-cover" alt="Profile" />
+              </Link>
+              <button onClick={signOut} className="text-red-500">Sign Out</button>
+            </>
+
+            
+          )}
           <button 
             onClick={() => setIsHidden(true)}
             className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-colors"

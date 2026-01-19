@@ -7,6 +7,8 @@ import { isInCheckmate, isInStalemate, isSquareAttacked } from "./game.logic";
 import { useAuth } from "../contexts/auth.context";
 import { useNavigate } from "react-router";
 import { useForm } from "@/hooks/useForm";
+import { isInCheck } from "./game.logic";
+
 
 export default function BoardComponent() {
   const { user } = useAuth()
@@ -29,7 +31,7 @@ export default function BoardComponent() {
     sendGameMessage,
     joinRandomGame
   } = useChess()
-  
+
   const [loading, setLoading] = useState(true)
   const [opponent, setOpponent] = useState(null)
   const [moveNames, setMoveNames] = useState({}) 
@@ -249,13 +251,16 @@ export default function BoardComponent() {
                   const isDark = (rIdx + cIdx) % 2 === 1;
                   const highlighted = isHighlighted(rIdx, cIdx);
                   const isSelected = selectedPiece?.row === rIdx && selectedPiece?.col === cIdx;
+                  
+                  const kingIsInCheck = square?.piece?.type === "king" && isInCheck(board , square.piece.color);
                   return (
                     <button key={`${rIdx}-${cIdx}`} onClick={() => handleClick(rIdx, cIdx)}
                       className={`relative flex items-center justify-center transition-colors duration-150
                         ${isDark ? 'bg-[#141a29]' : 'bg-[#1d2436]'}
                         ${isSelected ? 'bg-indigo-500/15' : ''}
                         ${highlighted && !square?.piece ? 'after:content-[""] after:size-2 after:bg-indigo-400/30 after:rounded-full' : ''}
-                        ${highlighted && square?.piece ? 'bg-red-500/10' : ''}`}
+                        ${highlighted && square?.piece ? 'bg-red-500/10' : ''}
+                        ${kingIsInCheck && "bg-red-500/10"} `}
                     >
                       {square?.piece && <img src={square.piece.image} className={`w-[82%] h-[82%] z-10 select-none ${playerColor === 'black' ? 'rotate-180' : ''}`} alt="" />}
                     </button>
