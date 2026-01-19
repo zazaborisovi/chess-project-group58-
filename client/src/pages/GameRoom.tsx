@@ -9,13 +9,14 @@ export default function GameRoom() {
   const { user } = useAuth();
   const [gameIdInput, setGameIdInput] = useState('');
 
-  const handleCreate = () => {
+  const handleCreate = async() => {
     if (!user?.username) return;
-    createPrivateGame(initBoard());
+    const {gameId} = await createPrivateGame();
+    joinGame(gameId);
   };
 
   const handleJoinRandomGame = () => {
-    joinRandomGame(initBoard());
+    joinRandomGame();
   };
 
   return (

@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const gameRoomSchema = new mongoose.Schema({
   gameId: String,
-  player1: String,
-  player2: String,
+  player1: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  player2: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   board: mongoose.Schema.Types.Mixed,
   turn: String,
   createdAt:{
@@ -11,13 +11,7 @@ const gameRoomSchema = new mongoose.Schema({
     default: Date.now
   },
   private: Boolean,
-  chat: [{
-    sender: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    message: String
-  }]
+  gameStatus: ["waiting", "started", "finished"]
 })
 
 const GameRoom = mongoose.model('GameRoom', gameRoomSchema)

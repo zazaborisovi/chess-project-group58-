@@ -3,9 +3,10 @@ import type { Piece } from "../types/chess.types";
 import { useChess } from "../contexts/chess.context";
 import { selectPiece } from "./init.board";
 import { blackBishop, blackKnight, blackQueen, blackRook, whiteBishop, whiteKnight, whiteQueen, whiteRook } from "./pieces";
-import { isInCheckmate, isInStalemate } from "./game.logic";
+import { isInCheckmate, isInStalemate, isSquareAttacked } from "./game.logic";
 import { useAuth } from "../contexts/auth.context";
 import { useNavigate } from "react-router";
+import { useForm } from "@/hooks/useForm";
 
 export default function BoardComponent() {
   const { user } = useAuth()
@@ -25,6 +26,8 @@ export default function BoardComponent() {
     setStalemate,
     checkmate,
     setCheckmate,
+    sendGameMessage,
+    joinRandomGame
   } = useChess()
   
   const [loading, setLoading] = useState(true)
@@ -35,7 +38,42 @@ export default function BoardComponent() {
   const [promotionData, setPromotionData] = useState(null)
   const [hideId, setHideId] = useState(false)
   const [copied, setCopied] = useState(false)
-
+  const [formData, handleChange] = useForm({ message: "" })
+  const [activeMessage , setActiveMessage] = useState(null)
+  
+  const handleSend = async (e) => {
+    e.preventDefault()
+    
+    if(!formData.message.trim()) return
+    await sendGameMessage(formData)
+    
+    showBubble(formData.message, user._id)
+    e.target.reset()
+  }
+  
+  const showBubble = async (message, senderId) => {
+    setActiveMessage({ message, senderId })
+    
+    setTimeout(() => {
+      setActiveMessage(null)
+    }, 10000)
+  }
+  
+  const MessageBubble = ({ isMine }) => {
+      if (!activeMessage || (isMine && activeMessage.senderId !== user._id) || (!isMine && activeMessage.senderId === user._id)) return null;
+      
+      return (
+        <div className={`absolute z-[120] bottom-full mb-2 animate-in slide-in-from-bottom-2 fade-in duration-300
+          ${isMine ? 'right-0' : 'left-0'}`}>
+          <div className="bg-indigo-600 text-white text-[11px] font-bold py-2 px-4 rounded-2xl rounded-br-none shadow-xl whitespace-nowrap">
+            {activeMessage.message}
+            {/* Little tail for the bubble */}
+            <div className={`absolute top-full size-2 bg-indigo-600 rotate-45 -translate-y-1 ${isMine ? 'right-2' : 'left-2'}`} />
+          </div>
+        </div>
+      );
+    };
+  
   useEffect(() => {
     const path = window.location.pathname
     const newGameId = path.split("/")[2]
@@ -53,10 +91,15 @@ export default function BoardComponent() {
       if (c) setCheckmate(true)
     })
     
+    socket.on("game-message", (data) => {
+        showBubble(data.message , data.senderId);
+    });
+    
     setLoading(false)
     return () => {
       socket.off("player-joined")
       socket.off("data")
+      socket.off("game-message")
     }
   }, [])
 
@@ -103,6 +146,7 @@ export default function BoardComponent() {
   }
 
   const handleClick = (row: number, col: number) => {
+    console.log(opponent)
     if (isHighlighted(row, col) && selectedPiece) {
       const updatedPiece = { ...selectedPiece.piece, hasMoved: true }
       const nextTurn = turn === "white" ? "black" : "white"
@@ -181,6 +225,23 @@ export default function BoardComponent() {
           </div>
 
           <main className="w-full max-w-[600px] relative">
+            <div className="flex items-center gap-3 px-4 sm:px-0 p-5">
+                <div className="relative">
+                <MessageBubble isMine={false} />
+                <img 
+                  src={opponent?.profilePicture?.url || "https://via.placeholder.com/40"} 
+                  className="size-10 rounded-xl border border-white/10 object-cover" 
+                  alt="opponent" 
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400">Opponent</span>
+                <span className="text-sm font-bold text-white leading-none">
+                  {opponent?.username || "Waiting for challenger..."}
+                </span>
+              </div>
+            </div>
+              
             {/* BOARD CONTAINER */}
             <div className={`relative w-full aspect-square bg-[#0b0f1a] border-y sm:border border-white/5 ${playerColor === 'black' ? 'rotate-180' : ''}`}>
               <div className="grid grid-cols-8 grid-rows-8 h-full w-full">
@@ -209,6 +270,47 @@ export default function BoardComponent() {
               )}
             </div>
 
+            <div className="flex items-center gap-3 px-4 sm:px-0 p-5">
+                <div className="relative">
+                <MessageBubble isMine={true} />
+                <img 
+                  src={user?.profilePicture?.url || "https://via.placeholder.com/40"} 
+                  className="size-10 rounded-xl border border-white/10 object-cover" 
+                  alt="user" 
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400">Opponent</span>
+                <span className="text-sm font-bold text-white leading-none">
+                  {user?.username || "Waiting for challenger..."}
+                </span>
+              </div>
+              <form 
+                  onSubmit={handleSend} 
+                  className="flex-1 max-w-[240px] flex items-center gap-2 group"
+                >
+                  <div className="relative flex-1">
+                    <input 
+                      type="text" 
+                      name="message" 
+                      placeholder="Say something..." 
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-[11px] text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.05] transition-all"
+                      onChange={handleChange}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <button 
+                    type="submit"
+                    className="p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all active:scale-90 disabled:opacity-50 disabled:hover:bg-indigo-600"
+                    disabled={!formData.message?.trim()}
+                  >
+                    <svg className="size-3.5 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </button>
+                </form>
+            </div>  
+            
             {/* GAME OVER MODAL: OUTSIDE ROTATED DIV SO IT'S ALWAYS UPRIGHT */}
             {(checkmate || stalemate) && (
               <div className="absolute inset-0 z-[150] flex items-center justify-center px-6 pointer-events-none">
@@ -226,7 +328,7 @@ export default function BoardComponent() {
                   </div>
 
                   <div className="flex flex-col gap-3 pt-2">
-                    <button onClick={() => navigate('/game')} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all active:scale-[0.98]">
+                      <button onClick={joinRandomGame} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all active:scale-[0.98]">
                       Play Again
                     </button>
                     <button onClick={() => navigate('/')} className="w-full py-4 bg-white/5 hover:bg-white/10 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl border border-white/5 transition-all">

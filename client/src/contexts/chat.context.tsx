@@ -42,25 +42,23 @@ const ChatProvider = ({ children }) => {
     fetchChats()
   }, [])
   
-  const sendMessage = async ({chatId , message }) => {
+  const sendMessage = async ({ chatId, message }) => {
     socket.emit("send-message", { chatId, message })
   }
   
   useEffect(() => {
     socket.on("message-sent", message => {
-      if (!socket) {
-          console.warn("ChatProvider: Socket not initialized yet");
-          return;
-      }
       console.log(message)
-      setCurrentChat((prev) => ({
-        ...prev,
-        messages: [...prev.messages, message]
-      }))
+      setCurrentChat((prev) => {
+        return {
+          ...prev,
+          messages: [...(prev.messages || []) , message]
+        }
+      })
     })
     
     return () => socket.off("message-sent")
-  }, [])
+  }, [socket])
   
   const createChat = async (friendId) => {
     try {
@@ -98,8 +96,8 @@ const ChatProvider = ({ children }) => {
       if (!res.ok) return console.log(data.error)
       
       console.log(data)
-      setCurrentChat(data)
       socket.emit("join-chat", chatId)
+      setCurrentChat(data)
     } catch (err) {
       console.log(err)
     }
@@ -111,7 +109,7 @@ const ChatProvider = ({ children }) => {
     )
     
     if (existingChat) {
-      redirect(`/chat/${existingChat._id}`)
+      window.location.href = `${import.meta.env.VITE_CLIENT_URL}/chat/${existingChat._id}`
     }
   }
   

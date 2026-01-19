@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth.context";
 const ChatPage = () => {  
   const { chatId } = useParams();
   const { user } = useAuth();
-  const { getChat, currentChat, sendMessage, setChatId, socket } = useChat();
+  const { getChat, currentChat, sendMessage, setChatId } = useChat();
   const [formData, handleChange] = useForm({ message: "" });
   const scrollRef = useRef(null);
 
@@ -21,17 +21,14 @@ const ChatPage = () => {
   }, [currentChat?.messages]);
 
   useEffect(() => {
-    if (chatId) {
-      socket.emit("join-chat", chatId);
-      setChatId(chatId);
-      getChat(chatId);
-    }
+    setChatId(chatId);
+    getChat(chatId);
   }, [chatId]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.message.trim()) return;
-    sendMessage({ chatId, message: formData.message });
+    await sendMessage({ chatId, message: formData.message });
     e.target.reset();
     formData.message = "";
   };

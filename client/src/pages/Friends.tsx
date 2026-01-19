@@ -9,11 +9,10 @@ import { useSocket } from "@/contexts/utils/socket.context";
 
 const Friends = () => {
   const [formData, handleChange] = useForm({ friendId: "" });
-  const navigate = useNavigate()
   const socket = useSocket();
   const { friends, sendFriendRequest, removeFriend , handleInvite } = useFriends();
   const { getSpecificChat } = useChat();
-  const { createPrivateGame } = useChess();
+  const { createPrivateGame , joinGame} = useChess();
   const [openMenu, setOpenMenu] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -28,14 +27,14 @@ const Friends = () => {
 
   const handleInviteClick = async(userId) => {
     try {
-      const data = await createPrivateGame(initBoard())
+      const data = await createPrivateGame()
       if (data && data.gameId) {
             socket.emit("invite-user", {
               userId: userId,
               gameId: data.gameId
             });
             setTimeout(() => {
-              window.location.href = `${import.meta.env.VITE_CLIENT_URL}/game/${data.gameId}`;
+              joinGame(data.gameId)
             }, 150);
           }
     } catch (error) {

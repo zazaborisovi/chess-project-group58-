@@ -1,8 +1,7 @@
 import { createContext, useState , useEffect, useContext } from "react";
-import { io } from "socket.io-client";
 import type { Board } from "../types/chess.types";
-import { useAuth } from "./auth.context";
 import { useSocket } from "./utils/socket.context";
+import { initBoard } from "@/chess/init.board";
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -23,8 +22,9 @@ const ChessProvider = ({children}) =>{
   
   const socket = useSocket()
   
-  const createPrivateGame = async(board) => {
-    try{
+  const createPrivateGame = async() => {
+    try {
+      const board = initBoard()
       const res = await fetch(`${API_URL}/game/private`,{
         method: "POST",
         headers: {
@@ -44,8 +44,9 @@ const ChessProvider = ({children}) =>{
     }
   }
   
-  const joinRandomGame = async (board) => { // creates new game room if no game is available
+  const joinRandomGame = async () => { // creates new game room if no game is available
     try {
+      const board = initBoard()
       const res = await fetch(`${API_URL}/game/public`,{
         method: "POST",
         headers: {
@@ -59,7 +60,7 @@ const ChessProvider = ({children}) =>{
       
       if(!res.ok) return console.log(data.message)
       
-      window.location.href = data.url
+      joinGame(data.gameId)
     }catch(err){
       console.log(err)
     }
@@ -80,8 +81,14 @@ const ChessProvider = ({children}) =>{
       setStalemate(stalemate)
       setCheckmate(checkmate)
     })
+    
+    socket.on("game-message", (message) => {
+      console.log(message)
+    })
+    
     return () => {
       socket.off("piece-moved")
+      socket.off("game-message")
     }
   }, [])
   
@@ -92,6 +99,12 @@ const ChessProvider = ({children}) =>{
     setBoard(newBoard)
     setTurn(nextTurn)
     console.log(board , turn)
+  }
+  
+  const sendGameMessage = (data) => {
+    if(!socket || !gameId) return console.log("Socket or gameId is undefined")
+    
+    socket.emit("send-game-message", { gameId, message: data.message })
   }
   
   return(
@@ -113,6 +126,7 @@ const ChessProvider = ({children}) =>{
       createPrivateGame,
       setGameId,
       joinRandomGame,
+      sendGameMessage
     }}>
       {children}
     </ChessContext.Provider>

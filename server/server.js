@@ -48,7 +48,7 @@ const io = new Server(httpServer, {
 io.use(socketProtect)
 
 // using socket
-io.on("connection", (socket) => {  
+io.on("connection", (socket) => {
   const user = socket.request.user
   
   if (user._id) {
@@ -56,14 +56,14 @@ io.on("connection", (socket) => {
   }
   
   socket.on("invite-user", (data) => {
-    console.log("Invite received" , data)
+    console.log("Invite received", data)
     io.to(`user_${data.userId}`).emit("receive-invite", {
       sender: { _id: user._id, username: user.username, profilePicture: user.profilePicture.url },
       gameId: data.gameId
     })
   })
   
-  socket.on("create-game-room" , async ({gameId}) =>{
+  socket.on("create-game-room", async ({ gameId }) => {
     const room = await GameRoom.findOne(gameId)
     socket.join(room.gameId)
 
@@ -78,28 +78,28 @@ io.on("connection", (socket) => {
     
     if (!room) {
       const dbData = await GameRoom.findOne({ gameId: gameId })
-      if(dbData){
+      if (dbData) {
         room = {
           board: dbData.board,
           turn: dbData.turn,
           chat: dbData.chat
         }
-        setGameCache(gameId , room , room.chat)
+        setGameCache(gameId, room, room.chat)
       }
     }
     
     if (!room) return console.log("game not found")
     
-    const {player1 , player2} = await GameRoom.findOne({gameId: gameId}) // gets player1 and player2 from database
-    const isPlayer1 = user.username === player1
+    const { player1, player2 } = await GameRoom.findOne({ gameId: gameId }) // gets player1 and player2 from database
+    const isPlayer1 = user._id.equals(player1._id)
     
-    if (!player2 && !isPlayer1){
-      await GameRoom.findOneAndUpdate({gameId: gameId}, {player2: socket.request.user.username})
+    if (!player2 && !isPlayer1) {
+      await GameRoom.findOneAndUpdate({ gameId: gameId }, { player2: user._id })
     }
     
     socket.emit("player-joined", {
       playerColor: isPlayer1 ? "white" : "black",
-      opponent: isPlayer1 ? player2 : player1
+      opponent: isPlayer1 ? await User.findById(player2?._id).select("username profilePicture _id") : await User.findById(player1?._id).select("username profilePicture _id")
     }) // emits player joined event which gives frontend color and opponent player of this player
     
     socket.join(gameId)
@@ -111,8 +111,8 @@ io.on("connection", (socket) => {
   })
   
   // handling piece movement in real time via socket
-  socket.on("piece-move", async(data) =>{
-    setGameCache(data.gameId , {board: data.board , turn: data.turn}) // sets old board to new in cache and updates turn
+  socket.on("piece-move", async (data) => {
+    setGameCache(data.gameId, { board: data.board, turn: data.turn }) // sets old board to new in cache and updates turn
     
     io.to(data.gameId).emit("piece-moved", { // updates board and turn on client side for everyone in room
       board: data.board,
@@ -123,20 +123,23 @@ io.on("connection", (socket) => {
     
     if (data.checkmate) {
       const user = await User.findById(socket.request.user._id)
+      gameRoom.gameStatus = "finished"
       user.wins += 1
-      await user.save()
+      await Promise.all([user.save(), gameRoom.save()])
     }
   })
   
-  socket.on("join-chat", async (chatId) => {    
+  socket.on("join-chat", async (chatId) => {
     socket.join(chatId)
   })
   
   socket.on("send-message", async (data) => {
+    await socket.join(data.chatId)
+    
     const chat = await Chat.findById(data.chatId)
     
     const message = {
-      sender: {_id: user._id, username: user.username , profilePicture: user.profilePicture.url},
+      sender: { _id: user._id, username: user.username, profilePicture: user.profilePicture.url },
       message: data.message
     }
     
@@ -145,15 +148,8 @@ io.on("connection", (socket) => {
     io.to(data.chatId).emit("message-sent", message)
   })
   
-  socket.on("send-message-game", async (data) => {
-    const gameRoom = getGameCache(data.gameId)
-    setGameCache(data.gameId, {
-      ...gameRoom,
-      messages: [...gameRoom.messages, {
-        sender: data.senderId,
-        message: data.message
-      }]
-    })
+  socket.on("send-game-message", async (data) => {
+    io.to(data.gameId).emit("game-message", {message: data.message , senderId: user._id})
   })
 })
 
