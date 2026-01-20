@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useControlPanel } from "../contexts/control.panel.context";
 import { useAuth } from "../contexts/auth.context";
-import axios from "axios"; // Assuming you use axios for the direct upload
 import { toast } from "react-toastify";
 
 const roleOptions = [
