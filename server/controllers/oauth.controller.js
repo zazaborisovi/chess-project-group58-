@@ -15,15 +15,12 @@ const createSendToken = async (user, res) => {
     // Set cookie with the token
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV == 'prod',
+        secure: process.env.NODE_ENV == "prod",
         sameSite: process.env.NODE_ENV == "prod" ? "none" : "lax",
-        maxAge: process.env.COOKIE_EXPIRES_IN,
+        maxAge: 3 * 24 * 60 * 60 * 1000,
     };
 
-    res.cookie(`${process.env.COOKIE_NAME}`, token, cookieOptions);
-
-    // Redirect to panel after setting cookie
-    res.redirect(`${process.env.CLIENT_URL}`)
+    res.cookie(process.env.COOKIE_NAME , token, cookieOptions).redirect(`${process.env.CLIENT_URL}`)
   }catch(err){
     console.error(err);
     res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`)
@@ -45,7 +42,7 @@ const googleCallback = async (req , res) =>{
   try {
       const { code } = req.query;
 
-      const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, {
+    const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, {
           code,
           client_id: process.env.GOOGLE_CLIENT_ID,
           client_secret: process.env.GOOGLE_SECRET,
@@ -79,7 +76,7 @@ const googleCallback = async (req , res) =>{
           });
       }
 
-      createSendToken(user, res);
+      await createSendToken(user, res);
   } catch(err) {
       console.log(err);
       res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);

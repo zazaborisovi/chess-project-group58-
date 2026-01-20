@@ -8,7 +8,7 @@ const createAndSendToken = async (user , statusCode , res) =>{
       httpOnly: true,
       secure: process.env.NODE_ENV == "prod",
       sameSite: process.env.NODE_ENV == "prod" ? "none" : "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
     };
     res.status(statusCode).cookie(process.env.COOKIE_NAME, token, cookieOptions).json({message: "token sent"})
   }catch(err){
