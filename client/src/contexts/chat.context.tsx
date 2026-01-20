@@ -15,8 +15,6 @@ const ChatProvider = ({ children }) => {
   const [chatId, setChatId] = useState(null)
   
   const socket = useSocket()
-
-  const redirect = useNavigate()
   
   useEffect(() => {
     const fetchChats = async () => {

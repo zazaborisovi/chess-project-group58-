@@ -24,7 +24,7 @@ const SocketProvider = ({ children }) => {
     socket.on("receive-invite", (data) => {
       toast.info(`${data.sender.username} has invited you to a game click to accept`, {
         onClick: () => {
-          window.location.href = `${import.meta.env.VITE_CLIENT_URL}/game/${data.gameId}`;
+          window.location.href = `/game/${data.gameId}`;
         }
       })
     })

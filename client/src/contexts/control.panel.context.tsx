@@ -1,4 +1,5 @@
 import {createContext , useContext , useState , useEffect} from "react";
+import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -31,7 +32,8 @@ const ControlPanelProvider = ({children}) => {
     fetchUsers()
   }, [refresh])
   
-  const updateUser = async (user) =>{
+  const updateUser = async (user) => {
+    const toastId = toast.loading("Updating user...")
     try{
       const res = await fetch(`${API_URL}/admin/update-user` , {
         method: "POST",
@@ -44,7 +46,21 @@ const ControlPanelProvider = ({children}) => {
       
       const data = await res.json()
       
-      if(!res.ok) return console.log(data.error)
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.error,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "User updated successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      })
       
       setUsers((prev) => prev.map(u => u.id === data.id ? data : u))
       setRefresh(!refresh)
@@ -53,7 +69,8 @@ const ControlPanelProvider = ({children}) => {
     }
   }
   
-  const deleteUser = async (user) =>{
+  const deleteUser = async (user) => {
+    const toastId = toast.loading("Deleting user...")
     try {
       const res = await fetch(`${API_URL}/admin/delete-user`, {
         method: "POST",
@@ -66,7 +83,21 @@ const ControlPanelProvider = ({children}) => {
       
       const data = await res.json()
       
-      if (!res.ok) return console.log(data.error)
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.error,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "User deleted successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      })
       
       setUsers((prev) => prev.filter(u => u._id !== user._id))
       setRefresh(!refresh)

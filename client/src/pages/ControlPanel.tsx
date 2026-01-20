@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useControlPanel } from "../contexts/control.panel.context";
 import { useAuth } from "../contexts/auth.context";
+import axios from "axios"; // Assuming you use axios for the direct upload
+import { toast } from "react-toastify";
 
 const roleOptions = [
   { label: "User", value: "user" },
@@ -9,11 +11,14 @@ const roleOptions = [
 ];
 
 const ControlPanel = () => {
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
   const { users, setUsers, updateUser, deleteUser } = useControlPanel() as any;
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [draft, setDraft] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Ref for the hidden file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setUsers(users ?? []);
@@ -42,6 +47,47 @@ const ControlPanel = () => {
     setDraft(null);
   };
 
+  // Logic to handle the immediate photo upload to your admin route
+  const handleAdminPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingUserId) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("userId", editingUserId);
+
+    const toastId = toast.loading("Uploading...");
+    try {
+      const res = await fetch(`${API_URL}/admin/update-profile-picture`, {
+        method: "POST",
+        body: formData,
+      })
+      
+      const data = await res.json()
+      
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+        });
+      }
+      toast.update(toastId, {
+        render: "Profile picture updated!",
+        type: "success",
+        isLoading: false,
+      });
+      
+      window.location.reload()
+    } catch (error) {
+      toast.update(toastId, {
+        render: error.message,
+        type: "error",
+        isLoading: false,
+      });
+    }
+  };
+
   const applyDraftChanges = () => {
     if (!draft || !editingUserId) return;
     updateUser({
@@ -54,8 +100,16 @@ const ControlPanel = () => {
 
   return (
     <section className="min-h-screen bg-[#0b0f1a] px-4 py-16 text-slate-200">
+      {/* Shared Hidden File Input */}
+      <input 
+        type="file" 
+        className="hidden" 
+        ref={fileInputRef} 
+        onChange={handleAdminPhotoUpload}
+        accept="image/*"
+      />
+
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
-        
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl font-extrabold text-white md:text-5xl">Control panel</h1>
@@ -79,7 +133,6 @@ const ControlPanel = () => {
         </header>
 
         <div className="flex flex-col gap-4">
-          {/* Header Row */}
           <div className="hidden md:flex items-center px-8 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
             <span className="flex-1">Identity</span>
             <span className="w-32">Role</span>
@@ -100,23 +153,26 @@ const ControlPanel = () => {
                   }`}
                 >
                   <div className="flex flex-col md:flex-row md:items-center gap-4 p-6 md:px-8">
-                    {/* User Info with Profile Image */}
                     <div className="flex flex-1 items-center gap-4 min-w-0">
-                      <div className="h-12 w-12 shrink-0 rounded-xl overflow-hidden border border-slate-700 bg-slate-800">
-                        {usr.profilePicture?.url ? (
-                          <img 
-                            src={usr.profilePicture.url} 
-                            alt={usr.username} 
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-indigo-500">
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      {/* Clickable Avatar if Editing */}
+                      <div 
+                        onClick={() => isEditing && fileInputRef.current?.click()}
+                        className={`group relative h-12 w-12 shrink-0 rounded-xl overflow-hidden border border-slate-700 bg-slate-800 ${isEditing ? 'cursor-pointer ring-2 ring-indigo-500/50' : ''}`}
+                      >
+                        <img 
+                          src={usr.profilePicture?.url} 
+                          alt={usr.username} 
+                          className="h-full w-full object-cover"
+                        />
+                        {isEditing && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             </svg>
                           </div>
                         )}
                       </div>
+
                       <div className="min-w-0">
                         <h2 className="text-lg font-bold text-white truncate">{usr.username}</h2>
                         <p className="text-xs text-slate-500 font-mono truncate">{usr.email}</p>
@@ -147,7 +203,6 @@ const ControlPanel = () => {
                     </div>
                   </div>
 
-                  {/* Edit Form */}
                   {isEditing && draft && (
                     <div className="bg-slate-950/50 border-t border-slate-800 p-6 md:p-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

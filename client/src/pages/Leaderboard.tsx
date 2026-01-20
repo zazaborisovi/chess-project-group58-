@@ -69,7 +69,7 @@ const LeaderboardPage = () => {
                       {index + 4}
                     </span>
                     <div className="h-10 w-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-400">
-                      {player.username.charAt(0).toUpperCase()}
+                      <img src={player.profilePicture.url} alt={player.username[0]} />
                     </div>
                     <span className="text-base font-bold text-white">{player.username}</span>
                   </div>
@@ -82,7 +82,7 @@ const LeaderboardPage = () => {
               ))
             ) : !topThree.length ? (
               <div className="py-20 text-center rounded-2xl border-2 border-dashed border-slate-800/50">
-                <p className="text-slate-500 font-medium">Tournament data loading...</p>
+                <p className="text-slate-500 font-medium">Leaderboard data loading...</p>
               </div>
             ) : null}
           </div>

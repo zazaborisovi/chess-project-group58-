@@ -33,6 +33,8 @@ const getGoogleAuthUrl = (req , res) => {
         redirect_uri: process.env.GOOGLE_REDIRECT_URI,
         response_type: 'code',
         scope: 'openid email profile',
+        access_type: 'offline',
+        prompt: 'consent'
     });
     
     res.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`);
@@ -42,13 +44,13 @@ const googleCallback = async (req , res) =>{
   try {
       const { code } = req.query;
 
-    const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, {
-          code,
-          client_id: process.env.GOOGLE_CLIENT_ID,
-          client_secret: process.env.GOOGLE_SECRET,
-          redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-          grant_type: 'authorization_code'
-      });
+      const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, {
+            code,
+            client_id: process.env.GOOGLE_CLIENT_ID,
+            client_secret: process.env.GOOGLE_SECRET,
+            redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+            grant_type: 'authorization_code'
+        });
 
       const { access_token } = tokenResponse.data;
 
@@ -71,12 +73,12 @@ const googleCallback = async (req , res) =>{
           user = await User.create({
               username: name,
               email,
-              oauthid: sub,
+              oauthId: sub,
               oauthProvider: 'google'
           });
       }
 
-      await createSendToken(user, res);
+      createSendToken(user, res);
   } catch(err) {
       console.log(err);
       res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);

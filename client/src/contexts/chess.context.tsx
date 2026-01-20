@@ -2,6 +2,7 @@ import { createContext, useState , useEffect, useContext } from "react";
 import type { Board } from "../types/chess.types";
 import { useSocket } from "./utils/socket.context";
 import { initBoard } from "@/chess/init.board";
+import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -22,7 +23,8 @@ const ChessProvider = ({children}) =>{
   
   const socket = useSocket()
   
-  const createPrivateGame = async() => {
+  const createPrivateGame = async () => {
+    const toastId = toast.loading('Creating private game...')
     try {
       const board = initBoard()
       const res = await fetch(`${API_URL}/game/private`,{
@@ -36,15 +38,35 @@ const ChessProvider = ({children}) =>{
       
       const data = await res.json()
       
-      if(!res.ok) return console.log(data.message)
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "Game created successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000
+      })
       
       return data
     }catch(err){
-      console.log(err)
+      toast.update(toastId, {
+        render: "Failed to create private game",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000
+      })
     }
   }
   
   const joinRandomGame = async () => { // creates new game room if no game is available
+    const toastId = toast.loading("Joining random game...")
     try {
       const board = initBoard()
       const res = await fetch(`${API_URL}/game/public`,{
@@ -58,11 +80,30 @@ const ChessProvider = ({children}) =>{
       
       const data = await res.json()
       
-      if(!res.ok) return console.log(data.message)
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "Joined random game successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000
+      })
       
       joinGame(data.gameId)
     }catch(err){
-      console.log(err)
+      toast.update(toastId, {
+        render: "Failed to join random game",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000
+      })
     }
   }
   

@@ -1,6 +1,7 @@
 import { createContext , useContext, useEffect, useState } from "react";
 import { useChat } from "./chat.context";
 import { useSocket } from "./utils/socket.context";
+import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_API_URL + "/friends"
 
@@ -60,7 +61,8 @@ const FriendProvider = ({ children }) => {
     fetchRequests()
   }, [])
   
-  const sendFriendRequest = async ({friendId}) =>{
+  const sendFriendRequest = async ({ friendId }) => {
+    const toastId = toast.loading("Sending friend request...")
     try{
       const res = await fetch(`${API_URL}/send-friend-request`, {
         method: "POST",
@@ -75,7 +77,21 @@ const FriendProvider = ({ children }) => {
       
       const data = await res.json()
       
-      if(!res.ok) return console.log(data.message)
+      if(!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "Friend request sent successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      })
       
       setFriends([...friends , data.friend])
     }catch(err){
@@ -83,9 +99,9 @@ const FriendProvider = ({ children }) => {
     }
   }
   
-  const acceptFriendRequest = async (friendId) =>{
+  const acceptFriendRequest = async (friendId) => {
+    const toastId = toast.loading("Accepting friend request...")
     try{
-      console.log(friendId)
       const res = await fetch(`${API_URL}/accept-friend-request`, {
         method: "POST",
         headers: {
@@ -97,16 +113,30 @@ const FriendProvider = ({ children }) => {
 
       const data = await res.json()
       
-      if(!res.ok) return console.log(data.message)
+      if(!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "Friend request accepted successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      })
       
       await createChat(friendId)
-      console.log(data.message)
     }catch(err){
       console.log(err)
     }
   }
   
   const rejectFriendRequest = async (friendId) => {
+    const toastId = toast.loading("Rejecting friend request...")
     try {
       const res = await fetch(`${API_URL}/reject-friend-request`, {
         method: "POST",
@@ -119,7 +149,21 @@ const FriendProvider = ({ children }) => {
 
       const data = await res.json()
       
-      if(!res.ok) return console.log(data.message)
+      if(!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "Friend request rejected successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      })
       
       console.log(data.message)
     } catch (err) {
@@ -128,6 +172,7 @@ const FriendProvider = ({ children }) => {
   }
   
   const removeFriend = async (friendId) => {
+    const toastId = toast.loading("Removing friend...")
     try {
       const res = await fetch(`${API_URL}/remove-friend`, {
         method: "POST",
@@ -140,7 +185,21 @@ const FriendProvider = ({ children }) => {
 
       const data = await res.json()
       
-      if(!res.ok) return console.log(data.message)
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      }
+      
+      toast.update(toastId, {
+        render: "Friend removed successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      })
       
       console.log(data.message)
     } catch (err) {

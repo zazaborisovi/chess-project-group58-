@@ -70,9 +70,8 @@ export const AuthProvider = ({children}) =>{
         autoClose: 3000,
         isLoading: false
       })
-      navigate("/")
+      window.location.href = '/'
     }catch(err){
-      console.log(err)
       toast.update(toastId,{
         render: err,
         type: "error",
@@ -109,7 +108,7 @@ export const AuthProvider = ({children}) =>{
         autoClose: 3000,
         isLoading: false
       })
-      navigate("/")
+      window.location.href = '/'
     } catch (err) {
       toast.update(toastId,{
         render: err.message,
@@ -122,8 +121,9 @@ export const AuthProvider = ({children}) =>{
   const googleAuth = () =>{
     window.location.href = `${API_URL}/oauth/google`
   }
-  const signOut = async() =>{
-    try{
+  const signOut = async () => {
+    const toastId = toast.loading('Signing out...')
+    try {
       const res = await fetch(`${API_URL}/auth/signout`, {
         method: 'POST',
         credentials: "include"
@@ -131,16 +131,36 @@ export const AuthProvider = ({children}) =>{
       
       const data = await res.json()
       
-      if(!res.ok) return console.log(data)
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          autoClose: 3000,
+          isLoading: false
+        })
+      }
       
       setUser(null)
-      navigate("/signin")
+      
+      toast.update(toastId, {
+        render: 'Signed out successfully!',
+        type: "success",
+        autoClose: 3000,
+        isLoading: false
+      })
+      
+      window.location.href = '/signout'
     }catch(err){
-      console.log(err)
+      toast.update(toastId,{
+        render: err.message,
+        type: "error",
+        autoClose: 3000,
+        isLoading: false
+      })
     }
   }
-
   const changeProfilePicture = async (file) => {
+    const toastId = toast.loading('Changing profile picture...')
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -152,12 +172,31 @@ export const AuthProvider = ({children}) =>{
       })
       const data = await res.json()
       
-      if(!res.ok) return console.log(data)
+      if (!res.ok) {
+        toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          autoClose: 3000,
+          isLoading: false
+        })
+      }
+      
+      toast.update(toastId, {
+        render: 'Profile picture changed successfully!',
+        type: "success",
+        autoClose: 3000,
+        isLoading: false
+      })
       
       console.log(data)
       setUser(data.updatedUser)
     } catch (err) {
-      console.log(err)
+      toast.update(toastId, {
+        render: err.message,
+        type: "error",
+        autoClose: 3000,
+        isLoading: false
+      })
     }
   }
   
