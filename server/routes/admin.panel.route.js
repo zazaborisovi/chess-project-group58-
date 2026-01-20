@@ -1,5 +1,6 @@
 const { fetchUsers , updateUser , updateProfilePicture } = require("../controllers/admin.panel.controller")
-const {protect , allowedTo} = require("../middleware/protect")
+const { protect, allowedTo } = require("../middleware/protect")
+const upload = require('../utils/multer');
 
 const adminRouter = require("express").Router()
 
