@@ -149,7 +149,7 @@ export const AuthProvider = ({children}) =>{
         isLoading: false
       })
       
-      window.location.href = '/signout'
+      window.location.href = '/signin'
     }catch(err){
       toast.update(toastId,{
         render: err.message,

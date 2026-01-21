@@ -12,7 +12,7 @@ authRouter.post("/auto-signin", protect, (req , res) =>{
 })
 
 authRouter.post("/signout", protect , (req , res) =>{
-  res.clearCookie(`${process.env.COOKIE_NAME}`).status(200).send()
+  res.clearCookie(`${process.env.COOKIE_NAME}`).status(200).json({message: "User signed out successfully"})
 })
 
 authRouter.post("/change-profile-picture", protect , upload.single("file") , changeProfilePicture)
