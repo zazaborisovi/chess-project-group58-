@@ -55,7 +55,8 @@ const fetchFriendRequests = async (req , res) =>{
     await user.populate('friendRequests.to' , 'username _id profilePicture')
     
     const requests = user.friendRequests.filter(
-      request => request.to.equals(user._id) && request.state === 'pending'
+      request => request.to.equals(user._id) && request.state === 'pending' ||
+        request.from.equals(user._id) && request.state === 'pending'
     )
     
     res.status(200).json({requests: requests})
@@ -107,15 +108,19 @@ const rejectFriendRequest = async (req, res) => {
     const { fromUserId } = req.body
     const fromUser = await User.findById(fromUserId)
     
+    console.log(fromUser)
+    
     const user = req.user
 
     if (!fromUser) return res.status(404).json({ message: "User not found" })
     
     const userRequestIndex = user.friendRequests.findIndex(
-      request => request.from.equals(fromUser._id) && request.to.equals(user._id) && request.state === 'pending'
+      request => request.from.equals(fromUser._id) && request.to.equals(user._id) && request.state === 'pending' ||
+        request.from.equals(user._id) && request.to.equals(fromUser._id) && request.state === 'pending'
     )
     const fromUserRequestIndex = fromUser.friendRequests.findIndex(
-      request => request.from.equals(user._id) && request.to.equals(fromUser._id) && request.state === 'pending'
+      request => request.from.equals(user._id) && request.to.equals(fromUser._id) && request.state === 'pending' ||
+        request.from.equals(fromUser._id) && request.to.equals(user._id) && request.state === 'pending'
     )
     
     if(userRequestIndex === -1 || fromUserRequestIndex === -1) return res.status(404).json({message: "Friend request not found"}) // in case if request index doesnt exist
