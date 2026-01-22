@@ -16,12 +16,11 @@ const ControlPanel = () => {
   const [draft, setDraft] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   
-  // Ref for the hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setUsers(users ?? []);
-  }, [users]);
+  }, [users, setUsers]);
 
   const filteredUsers = useMemo(() => {
     return (users ?? []).filter((u: any) => 
@@ -46,7 +45,6 @@ const ControlPanel = () => {
     setDraft(null);
   };
 
-  // Logic to handle the immediate photo upload to your admin route
   const handleAdminPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingUserId) return;
@@ -55,34 +53,33 @@ const ControlPanel = () => {
     formData.append("file", file);
     formData.append("userId", editingUserId);
 
-    const toastId = toast.loading("Uploading...");
+    const toastId = toast.loading("Uploading new photo...");
     try {
-      const res = await fetch(`${API_URL}/admin/update-profile-picture`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/update-profile-picture`, {
         method: "POST",
         body: formData,
-      })
+      });
       
-      const data = await res.json()
+      const data = await res.json();
       
       if (!res.ok) {
-        toast.update(toastId, {
-          render: data.message,
-          type: "error",
-          isLoading: false,
-        });
+        throw new Error(data.message || "Upload failed");
       }
+
       toast.update(toastId, {
         render: "Profile picture updated!",
         type: "success",
         isLoading: false,
+        autoClose: 3000
       });
       
-      window.location.reload()
-    } catch (error) {
+      window.location.reload();
+    } catch (error: any) {
       toast.update(toastId, {
         render: error.message,
         type: "error",
         isLoading: false,
+        autoClose: 3000
       });
     }
   };
@@ -99,7 +96,6 @@ const ControlPanel = () => {
 
   return (
     <section className="min-h-screen bg-[#0b0f1a] px-4 py-16 text-slate-200">
-      {/* Shared Hidden File Input */}
       <input 
         type="file" 
         className="hidden" 
@@ -111,8 +107,8 @@ const ControlPanel = () => {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-extrabold text-white md:text-5xl">Control panel</h1>
-            <p className="text-slate-500 mt-2 text-lg">System-wide account management.</p>
+            <h1 className="text-4xl font-extrabold text-white md:text-5xl tracking-tight">Member Management</h1>
+            <p className="text-slate-500 mt-2 text-lg">Manage user accounts and system permissions.</p>
           </div>
 
           <div className="relative w-full md:w-80 group">
@@ -123,7 +119,7 @@ const ControlPanel = () => {
             </div>
             <input 
               type="text"
-              placeholder="Filter users..."
+              placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl bg-slate-900/60 border border-slate-800 py-3 pl-11 pr-4 text-sm outline-none transition-all focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
@@ -132,11 +128,12 @@ const ControlPanel = () => {
         </header>
 
         <div className="flex flex-col gap-4">
+          {/* Header Row */}
           <div className="hidden md:flex items-center px-8 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
-            <span className="flex-1">Identity</span>
-            <span className="w-32">Role</span>
-            <span className="w-24 text-center">Wins</span>
-            <span className="w-32 text-right">Actions</span>
+            <span className="flex-1">User Info</span>
+            <span className="w-32">Access Level</span>
+            <span className="w-24 text-center">Total Wins</span>
+            <span className="w-32 text-right">Options</span>
           </div>
 
           {filteredUsers.length > 0 ? (
@@ -151,15 +148,15 @@ const ControlPanel = () => {
                       : "border-slate-800 bg-slate-900/40"
                   }`}
                 >
+                  {/* Fixed Center Alignment Row */}
                   <div className="flex flex-col md:flex-row md:items-center gap-4 p-6 md:px-8">
                     <div className="flex flex-1 items-center gap-4 min-w-0">
-                      {/* Clickable Avatar if Editing */}
                       <div 
                         onClick={() => isEditing && fileInputRef.current?.click()}
                         className={`group relative h-12 w-12 shrink-0 rounded-xl overflow-hidden border border-slate-700 bg-slate-800 ${isEditing ? 'cursor-pointer ring-2 ring-indigo-500/50' : ''}`}
                       >
                         <img 
-                          src={usr.profilePicture?.url} 
+                          src={usr.profilePicture?.url || "/placeholder-avatar.png"} 
                           alt={usr.username} 
                           className="h-full w-full object-cover"
                         />
@@ -178,7 +175,7 @@ const ControlPanel = () => {
                       </div>
                     </div>
 
-                    <div className="w-32">
+                    <div className="w-32 flex items-center">
                       <span className={`rounded-lg px-2 py-1 text-[10px] font-black uppercase tracking-widest ${
                         usr.role === 'admin' ? 'bg-amber-500/10 text-amber-500' : 'bg-indigo-500/10 text-indigo-400'
                       }`}>
@@ -186,17 +183,18 @@ const ControlPanel = () => {
                       </span>
                     </div>
 
-                    <div className="w-24 md:text-center">
-                      <p className="text-xl font-black text-white">{usr.wins ?? 0}</p>
+                    {/* Wins Column: Centered vertically and horizontally */}
+                    <div className="w-24 flex items-center md:justify-center">
+                      <p className="text-xl font-black text-white leading-none">{usr.wins ?? 0}</p>
                     </div>
 
-                    <div className="w-full md:w-32 flex justify-end">
+                    <div className="w-full md:w-32 flex items-center justify-end">
                       {!isEditing && (
                         <button 
                           onClick={() => beginEditing(usr)}
                           className="rounded-xl border border-slate-700 px-6 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
                         >
-                          Modify
+                          Edit Member
                         </button>
                       )}
                     </div>
@@ -226,7 +224,7 @@ const ControlPanel = () => {
                           </select>
                         </div>
                         <EditableField
-                          label="Wins"
+                          label="Total Wins"
                           value={draft.wins}
                           onChange={(v: string) => setDraft({...draft, wins: v})}
                           inputMode="numeric"
@@ -235,10 +233,10 @@ const ControlPanel = () => {
 
                       <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
                         <button 
-                          onClick={() => { if(window.confirm("Delete account?")) deleteUser(usr) }}
+                          onClick={() => { if(window.confirm("Are you sure you want to delete this account? This cannot be undone.")) deleteUser(usr) }}
                           className="text-xs font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition"
                         >
-                          Delete User
+                          Permanently Delete User
                         </button>
                         <div className="flex gap-3 w-full md:w-auto">
                           <button onClick={cancelEditing} className="flex-1 md:flex-none rounded-xl px-6 py-3 text-sm font-bold text-slate-400 hover:text-white">
@@ -256,7 +254,7 @@ const ControlPanel = () => {
             })
           ) : (
             <div className="py-20 text-center rounded-3xl border-2 border-dashed border-slate-800/50">
-              <p className="text-slate-500 font-bold">No accounts found.</p>
+              <p className="text-slate-500 font-bold">No accounts matched your search.</p>
             </div>
           )}
         </div>

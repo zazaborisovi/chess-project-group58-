@@ -25,7 +25,7 @@ const getChat = async (req , res) =>{
   try{
     const { chatId } = req.params
     
-    const chat = await Chat.findById(chatId)
+    const chat = await Chat.findById(chatId).populate('users', 'username profilePicture')
     
     if(!chat) res.status(404).json({error: 'Chat not found'});
     

@@ -141,7 +141,7 @@ io.on("connection", (socket) => {
     const chat = await Chat.findById(data.chatId)
     
     const message = {
-      sender: { _id: user._id, username: user.username, profilePicture: user.profilePicture.url },
+      sender: { _id: user._id },
       message: data.message
     }
     

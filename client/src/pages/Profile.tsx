@@ -60,12 +60,12 @@ const ProfilePage = () => {
               <h1 className="text-4xl font-black tracking-tighter text-white md:text-6xl">{user.username}</h1>
               <div className="mt-6 flex flex-wrap justify-center gap-4 md:justify-start">
                 <div className="rounded-2xl bg-white/5 px-6 py-3 border border-white/5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Registry ID</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">ID</p>
                   <p className="font-mono text-sm text-indigo-300">#{user._id.slice(0 , -12)}...</p>
                 </div>
                 <div className="rounded-2xl bg-white/5 px-6 py-3 border border-white/5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Companions</p>
-                  <p className="text-lg font-black text-white">{friends.length}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Wins</p>
+                  <p className="font-mono text-lg text-yellow-400">{user.wins}</p>
                 </div>
               </div>
             </div>
@@ -76,8 +76,8 @@ const ProfilePage = () => {
         <div className="space-y-6">
           <div className="flex items-end justify-between px-2">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500">Your Circle</p>
-              <h2 className="text-3xl font-extrabold text-white tracking-tighter">Chess Companions</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500">Friends</p>
+              <h2 className="text-3xl font-extrabold text-white tracking-tighter">Friends</h2>
             </div>
             <button className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors">
               View All

@@ -51,8 +51,8 @@ const fetchFriendRequests = async (req , res) =>{
   try{
     const user = req.user
     
-    await user.populate('friendRequests.from' , 'username _id')
-    await user.populate('friendRequests.to' , 'username _id')
+    await user.populate('friendRequests.from' , 'username _id profilePicture')
+    await user.populate('friendRequests.to' , 'username _id profilePicture')
     
     const requests = user.friendRequests.filter(
       request => request.to.equals(user._id) && request.state === 'pending'

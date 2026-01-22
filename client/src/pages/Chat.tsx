@@ -10,6 +10,7 @@ const ChatPage = () => {
   const { getChat, currentChat, sendMessage, setChatId } = useChat();
   const [formData, handleChange] = useForm({ message: "" });
   const scrollRef = useRef(null);
+  const friend = currentChat?.users?.find(u => u._id !== user._id)
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -36,28 +37,16 @@ const ChatPage = () => {
   return (
     /* flex-1 makes it fill the whole screen under the Nav */
     <div className="flex flex-1 flex-col w-screen h-screen bg-[#0b0f1a] overflow-hidden">
-      
+
       {/* HEADER: Full width, flush with top */}
       <header className="flex shrink-0 items-center justify-between border-b border-white/5 bg-slate-900/40 px-6 py-4 backdrop-blur-xl">
         <div className="flex items-center gap-4">
           <div className="size-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-            <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
+            <div className="text-white text-xl flex gap-2 items-center">
+              <img src={friend?.profilePicture?.url} className="rounded-xl" />
+              {friend?.username}
+            </div>
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-xs font-black text-white uppercase tracking-[0.2em]">Match Comms</h1>
-            <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
-              <span className="size-1 rounded-full bg-emerald-500 animate-pulse" />
-              Connected
-            </span>
-          </div>
-        </div>
-        
-        <div className="px-4 py-1.5 rounded-lg bg-white/[0.03] border border-white/5">
-           <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
-             Room: {chatId?.slice(-10).toUpperCase()}
-           </span>
         </div>
       </header>
 
@@ -74,7 +63,7 @@ const ChatPage = () => {
               <div key={index} className={`flex items-end gap-3 ${isMe ? "flex-row-reverse" : "flex-row"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
                 {!isMe && (
                   <img 
-                    src={item.sender.profilePicture || `https://ui-avatars.com/api/?name=${item.sender.username}&background=6366f1&color=fff`} 
+                    src={friend?.profilePicture?.url || `https://ui-avatars.com/api/?name=${friend?.username}&background=6366f1&color=fff`} 
                     alt="" 
                     className="size-8 rounded-lg object-cover border border-white/10 mb-1 shadow-lg" 
                   />
@@ -82,8 +71,8 @@ const ChatPage = () => {
                 
                 <div className={`flex flex-col max-w-[80%] md:max-w-[50%]`}>
                   {!isMe && (
-                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1.5 ml-1">
-                      {item.sender.username}
+                    <span className="text-[10px] font-black text-slate-600 tracking-widest mb-1.5 ml-1">
+                      {friend?.username}
                     </span>
                   )}
 

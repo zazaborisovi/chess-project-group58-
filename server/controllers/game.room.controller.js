@@ -1,9 +1,11 @@
 const GameRoom = require('../models/game.room.model');
 const {setGameCache, getGameCache} = require('../utils/cache')
+const uuidv4 = require('uuid').v4;
+
 
 const roomInit = (player1, player2, board, private) => {
   const gameRoom = new GameRoom({
-    gameId: Math.random().toString(36).substring(2, 10),
+    gameId: (uuidv4().split("-")).join(""),
     player1,
     player2,
     turn: "white",

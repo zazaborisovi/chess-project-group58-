@@ -12,7 +12,6 @@ import { isInCheck } from "./game.logic";
 
 export default function BoardComponent() {
   const { user } = useAuth()
-  const navigate = useNavigate();
   const {
     socket,
     setGameId,
@@ -104,7 +103,7 @@ export default function BoardComponent() {
       socket.off("game-message")
     }
   }, [])
-
+  
   const copyToClipboard = () => {
     if (!gameId) return;
     navigator.clipboard.writeText(gameId);
@@ -210,7 +209,7 @@ export default function BoardComponent() {
             <div className="flex items-center gap-2">
               <button onClick={copyToClipboard} className="group px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 active:scale-95 transition-all">
                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-400 transition-colors">
-                  {copied ? "Copied!" : (hideId ? "****-****" : gameId?.slice(-9).toUpperCase())}
+                  {copied ? "Copied!" : (hideId ? "********" : gameId?.slice(0 , 10).toUpperCase() + "...")}
                 </span>
               </button>
               <button 
