@@ -91,8 +91,8 @@ export default function BoardComponent() {
       if (c) setCheckmate(true)
     })
     socket.on("sync-players", ({ player1, player2 }) => {
-      const myOpponent = player1?._id === user?._id ? player2 : player1;
-      setOpponent(myOpponent)
+      const syncOpponent = player1._id === user._id ? player2 : player1
+      setOpponent(syncOpponent)
     })
     socket.on("game-message", (data) => {
         showBubble(data.message , data.senderId);
@@ -287,7 +287,7 @@ export default function BoardComponent() {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400">Opponent</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400">you</span>
                 <span className="text-sm font-bold text-white leading-none">
                   {user?.username || "Waiting for challenger..."}
                 </span>
