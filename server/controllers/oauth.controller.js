@@ -12,13 +12,14 @@ const createSendToken = async (user, res) => {
     const token = user.signToken();
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV == "prod",
-        sameSite: process.env.NODE_ENV == "prod" ? "none" : "lax",
+        secure: process.env.NODE_ENV == 'prod',
+        sameSite: process.env.NODE_ENV == 'prod' ? 'none' : 'lax',
         maxAge: 3 * 24 * 60 * 60 * 1000,
     };
 
-    await res.status(200).cookie(process.env.COOKIE_NAME, token, cookieOptions)
-    return res.redirect(`${process.env.CLIENT_URL}/`);
+    res.status(200).cookie(process.env.COOKIE_NAME, token, cookieOptions)
+    
+    res.redirect(`${process.env.CLIENT_URL}/profile`);
   }catch(err){
     console.error(err);
     res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`)
@@ -27,8 +28,8 @@ const createSendToken = async (user, res) => {
 
 const getGoogleAuthUrl = (req , res) => {
     const params = new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        client_id: process.env.MAIN_GOOGLE_ID,
+        redirect_uri: process.env.MAIN_GOOGLE_REDIRECT,
         response_type: 'code',
         scope: 'openid email profile',
         access_type: 'offline',
@@ -42,17 +43,13 @@ const googleCallback = async (req , res) =>{
   try {
       const { code } = req.query;
 
-      const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, new URLSearchParams({
-          code,
-          client_id: process.env.GOOGLE_CLIENT_ID,
-          client_secret: process.env.GOOGLE_SECRET,
-          redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-          grant_type: 'authorization_code'
-      }).toString(), {
-          headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-          }
-      });
+      const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, {
+            code,
+            client_id: process.env.MAIN_GOOGLE_ID,
+            client_secret: process.env.MAIN_GOOGLE_SECRET,
+            redirect_uri: process.env.MAIN_GOOGLE_REDIRECT,
+            grant_type: 'authorization_code'
+        });
 
       const { access_token } = tokenResponse.data;
 
@@ -62,15 +59,12 @@ const googleCallback = async (req , res) =>{
           }
       });
 
-      const { email, name , sub, email_verified } = userInfo.data;
+      const { email, name , sub } = userInfo.data;
 
       // First, check if user exists with this specific Google account
       let user = await User.findOne({ email });
 
       if(!user) {
-          if(!email_verified) {
-              return res.status(400).json({message: 'Google account not verified'});
-          }
           user = await User.create({
               username: name,
               email,
