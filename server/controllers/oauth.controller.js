@@ -17,7 +17,7 @@ const createSendToken = async (user, res) => {
         maxAge: 3 * 24 * 60 * 60 * 1000,
     };
 
-    res.status(200).cookie(process.env.COOKIE_NAME, token, cookieOptions).json({message: "login successful"})
+    res.status(200).cookie(process.env.COOKIE_NAME, token, cookieOptions)
     
     res.redirect(`${process.env.CLIENT_URL}/profile`);
   }catch(err){
