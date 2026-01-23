@@ -17,7 +17,8 @@ const createSendToken = async (user, res) => {
         maxAge: 3 * 24 * 60 * 60 * 1000,
     };
 
-    res.status(200).cookie(process.env.COOKIE_NAME , token, cookieOptions).redirect(`${process.env.CLIENT_URL}`)
+    res.status(200).cookie(process.env.COOKIE_NAME, token, cookieOptions)
+    return res.redirect(`${process.env.CLIENT_URL}/`);
   }catch(err){
     console.error(err);
     res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`)
@@ -72,9 +73,9 @@ const googleCallback = async (req , res) =>{
               oauthId: sub,
               oauthProvider: 'google'
           });
-          createSendToken(user, res);
       }
-  } catch(err) {
+      await createSendToken(user, res);
+  } catch (err) {
       console.log(err);
       res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
   }
