@@ -17,7 +17,7 @@ const createSendToken = async (user, res) => {
         maxAge: 3 * 24 * 60 * 60 * 1000,
     };
 
-    res.status(200).cookie(process.env.COOKIE_NAME, token, cookieOptions)
+    res.status(200).cookie(process.env.COOKIE_NAME, token, cookieOptions).json({message: "login successful"})
     
     res.redirect(`${process.env.CLIENT_URL}/profile`);
   }catch(err){
@@ -64,15 +64,15 @@ const googleCallback = async (req , res) =>{
       // First, check if user exists with this specific Google account
       let user = await User.findOne({ email });
 
-      if(!user) {
-          user = await User.create({
-              username: name,
-              email,
-              oauthId: sub,
-              oauthProvider: 'google'
-          });
+      if (!user) {
+        user = await User.create({
+          username: name,
+          email,
+          oauthId: sub,
+          oauthProvider: 'google'
+        });
       }
-      await createSendToken(user, res);
+      createSendToken(user, res);
   } catch (err) {
       console.log(err);
       res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
