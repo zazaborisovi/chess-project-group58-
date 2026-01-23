@@ -5,7 +5,6 @@ import { selectPiece } from "./init.board";
 import { blackBishop, blackKnight, blackQueen, blackRook, whiteBishop, whiteKnight, whiteQueen, whiteRook } from "./pieces";
 import { isInCheckmate, isInStalemate, isSquareAttacked } from "./game.logic";
 import { useAuth } from "../contexts/auth.context";
-import { useNavigate } from "react-router";
 import { useForm } from "@/hooks/useForm";
 import { isInCheck } from "./game.logic";
 
@@ -91,7 +90,10 @@ export default function BoardComponent() {
       if (s) setStalemate(true)
       if (c) setCheckmate(true)
     })
-    
+    socket.on("sync-players", ({ player1, player2 }) => {
+      const myOpponent = player1?._id === user?._id ? player2 : player1;
+      setOpponent(myOpponent)
+    })
     socket.on("game-message", (data) => {
         showBubble(data.message , data.senderId);
     });
@@ -100,6 +102,7 @@ export default function BoardComponent() {
     return () => {
       socket.off("player-joined")
       socket.off("data")
+      socket.off("sync-players")
       socket.off("game-message")
     }
   }, [])

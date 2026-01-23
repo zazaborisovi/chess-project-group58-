@@ -10,7 +10,7 @@ const ChatPage = () => {
   const { getChat, currentChat, sendMessage, setChatId } = useChat();
   const [formData, handleChange] = useForm({ message: "" });
   const scrollRef = useRef(null);
-  const friend = currentChat?.users?.find(u => u._id !== user._id)
+  const friend = currentChat?.users?.find(u => u._id !== user._id);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -35,51 +35,55 @@ const ChatPage = () => {
   };
 
   return (
-    /* flex-1 makes it fill the whole screen under the Nav */
-    <div className="flex flex-1 flex-col w-screen h-screen bg-[#0b0f1a] overflow-hidden">
+    <div className="flex flex-1 flex-col w-full h-screen bg-[#0b0f1a] overflow-hidden">
 
-      {/* HEADER: Full width, flush with top */}
-      <header className="flex shrink-0 items-center justify-between border-b border-white/5 bg-slate-900/40 px-6 py-4 backdrop-blur-xl">
+      {/* HEADER: Floating Glass Design */}
+      <header className="z-20 flex shrink-0 items-center border-b border-white/5 bg-slate-900/40 px-4 py-3 md:px-8 md:py-4 backdrop-blur-2xl">
         <div className="flex items-center gap-4">
-          <div className="size-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-            <div className="text-white text-xl flex gap-2 items-center">
-              <img src={friend?.profilePicture?.url} className="rounded-xl" />
-              {friend?.username}
-            </div>
+          <div className="relative">
+            <img 
+              src={friend?.profilePicture?.url || `https://ui-avatars.com/api/?name=${friend?.username}&background=6366f1&color=fff`} 
+              className="size-10 md:size-12 rounded-2xl border border-white/10 object-cover shadow-2xl" 
+              alt="Avatar"
+            />
+          </div>
+          
+          <div className="flex flex-col">
+            <h2 className="text-sm md:text-base font-black tracking-tight text-white">
+              {friend?.username || "Opponent"}
+            </h2>
           </div>
         </div>
       </header>
 
-      {/* MESSAGES: Full width scroll area */}
+      {/* MESSAGES AREA */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-6 py-8 md:px-12 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent"
+        className="flex-1 overflow-y-auto px-4 py-6 md:px-12 lg:px-24 space-y-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {currentChat?.messages?.length ? (
           currentChat.messages.map((item, index) => {
             const isMe = item.sender._id === user?._id;
             
             return (
-              <div key={index} className={`flex items-end gap-3 ${isMe ? "flex-row-reverse" : "flex-row"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+              <div key={index} className={`flex items-end gap-3 ${isMe ? "flex-row-reverse" : "flex-row"} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                 {!isMe && (
                   <img 
                     src={friend?.profilePicture?.url || `https://ui-avatars.com/api/?name=${friend?.username}&background=6366f1&color=fff`} 
                     alt="" 
-                    className="size-8 rounded-lg object-cover border border-white/10 mb-1 shadow-lg" 
+                    className="size-7 md:size-8 rounded-lg object-cover border border-white/10 mb-1 shadow-lg" 
                   />
                 )}
                 
-                <div className={`flex flex-col max-w-[80%] md:max-w-[50%]`}>
-                  {!isMe && (
-                    <span className="text-[10px] font-black text-slate-600 tracking-widest mb-1.5 ml-1">
-                      {friend?.username}
-                    </span>
-                  )}
-
-                  <div className={`px-5 py-3 text-[13px] leading-relaxed shadow-sm transition-all ${
+                <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[85%] md:max-w-[60%]`}>
+                  <span className="mt-1.5 px-1 text-[9px] font-bold tracking-tighter text-slate-600">
+                    {isMe ? "Sent" : friend?.username}
+                  </span>
+                  <div className={`px-4 py-3 text-sm font-medium transition-all shadow-xl ${
                     isMe 
                       ? "bg-indigo-600 text-white rounded-2xl rounded-br-none" 
-                      : "bg-slate-800/80 text-slate-200 rounded-2xl rounded-bl-none border border-white/5"
+                      : "bg-slate-800/90 text-slate-100 rounded-2xl rounded-bl-none border border-white/5 backdrop-blur-sm"
                   }`}>
                     {item.message}
                   </div>
@@ -88,38 +92,38 @@ const ChatPage = () => {
             );
           })
         ) : (
-          <div className="flex h-full flex-col items-center justify-center opacity-10">
-            <p className="text-[11px] font-black uppercase tracking-[1em]">Beginning of Chat</p>
+          <div className="flex h-full flex-col items-center justify-center space-y-4 opacity-20">
+            <div className="h-[1px] w-24 bg-white/20"></div>
+            <p className="text-[10px] font-black uppercase tracking-[1em] text-white">Battle Logs</p>
+            <div className="h-[1px] w-24 bg-white/20"></div>
           </div>
         )}
       </div>
 
-      {/* FOOTER: Full width input area */}
-      <footer className="bg-slate-950/60 p-6 border-t border-white/5 backdrop-blur-xl">
+      {/* FOOTER: Fixed Input area */}
+      <footer className="z-20 bg-slate-950/80 p-4 md:p-6 border-t border-white/5 backdrop-blur-2xl">
         <form 
           onSubmit={handleSubmit} 
-          className="mx-auto flex max-w-6xl items-center gap-4 bg-slate-900/50 p-2 rounded-2xl border border-white/10 ring-1 ring-white/5 focus-within:ring-indigo-500/30 transition-all duration-300"
+          className="mx-auto flex max-w-5xl items-center gap-3 bg-white/5 p-1.5 rounded-2xl border border-white/5 focus-within:border-indigo-500/50 focus-within:bg-white/[0.07] transition-all duration-500"
         >
           <input 
             type="text" 
-            placeholder="Send a message to your opponent..." 
+            placeholder="Type your message..." 
             name="message" 
             onChange={handleChange} 
-            className="flex-1 bg-transparent px-4 py-2 text-sm text-white outline-none placeholder:text-slate-700 font-medium" 
+            className="flex-1 bg-transparent px-4 py-2 text-sm text-white outline-none placeholder:text-slate-600 font-medium" 
             autoComplete="off"
           />
           <button 
             type="submit" 
-            className="flex h-11 px-6 items-center justify-center rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 transition-all shadow-lg shadow-indigo-600/20"
+            className="flex size-11 items-center justify-center rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 active:scale-90 transition-all shadow-lg shadow-indigo-600/30"
           >
-            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline mr-2">Send</span>
-            <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="size-5 rotate-12">
               <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" />
             </svg>
           </button>
         </form>
       </footer>
-
     </div>
   );
 };

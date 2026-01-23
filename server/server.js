@@ -102,6 +102,11 @@ io.on("connection", (socket) => {
       opponent: isPlayer1 ? await User.findById(player2?._id).select("username profilePicture _id") : await User.findById(player1?._id).select("username profilePicture _id")
     }) // emits player joined event which gives frontend color and opponent player of this player
     
+    io.to(gameId).emit("sync-players", {
+      player1: room.player1,
+      player2: room.player2
+    })
+        
     socket.join(gameId)
     
     io.to(gameId).emit("data", {

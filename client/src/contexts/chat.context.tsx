@@ -107,7 +107,7 @@ const ChatProvider = ({ children }) => {
     )
     
     if (existingChat) {
-      window.location.href = `${import.meta.env.VITE_CLIENT_URL}/chat/${existingChat._id}`
+      window.location.href = `/chat/${existingChat._id}`
     }
   }
   
