@@ -42,13 +42,17 @@ const googleCallback = async (req , res) =>{
   try {
       const { code } = req.query;
 
-      const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, {
-            code,
-            client_id: process.env.GOOGLE_CLIENT_ID,
-            client_secret: process.env.GOOGLE_SECRET,
-            redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-            grant_type: 'authorization_code'
-        });
+      const tokenResponse = await axios.post(GOOGLE_TOKEN_URL, new URLSearchParams({
+          code,
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_SECRET,
+          redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+          grant_type: 'authorization_code'
+      }).toString(), {
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+          }
+      });
 
       const { access_token } = tokenResponse.data;
 
