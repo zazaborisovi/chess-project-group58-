@@ -37,7 +37,7 @@ export const AuthProvider = ({children}) =>{
         setLoading(false)
       }
     }
-    setTimeout(autoLogin, 3000)
+    autoLogin()
   }, [])
   
   const signup = async(formData) =>{
