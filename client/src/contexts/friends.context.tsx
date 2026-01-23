@@ -13,52 +13,31 @@ const FriendProvider = ({ children }) => {
   const socket = useSocket()
   const {createChat} = useChat()
   const [friends , setFriends] = useState([])
-  const [requests , setRequests] = useState([])
+  const [requests, setRequests] = useState([])
+  const [loading , setLoading] = useState(true)
+  
+  const refreshData = async() => {
+    try {
+      const [friendsRes, requestRes] = await Promise.all([
+        fetch(`${API_URL}/`, {credentials: "include"}),
+        fetch(`${API_URL}/requests`, {credentials: "include"})
+      ])
+      
+      const friendData = await friendsRes.json()
+      const requestData = await requestRes.json()
+      
+      console.log(friendData, requestData)
+      if(friendsRes.ok) setFriends(friendData.friends)
+      if(requestRes.ok) setRequests(requestData.requests)
+    } catch (err) {
+      console.log(err)
+    } finally {
+      setLoading(false)
+    }
+  }
   
   useEffect(() => {
-    const fetchFriends = async () =>{
-      try {
-        const res = await fetch(`${API_URL}/friends`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          credentials: "include"
-        })
-        
-        const data = await res.json()
-        
-        if (!res.ok) return console.log("some issues fetching friends")
-        
-        setFriends(data.friends)
-      }catch(err){
-        console.log(err)
-      }
-    }
-    fetchFriends()
-    
-    const fetchRequests = async () =>{
-      try{
-        const res = await fetch(`${API_URL}/requests`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          credentials: "include"
-        })
-        
-        const data = await res.json()
-        
-        if(!res.ok) return console.log(data.message)
-        
-        console.log(data)
-        
-        setRequests(data.requests)
-      }catch(err){
-        console.log(err)
-      }
-    }
-    fetchRequests()
+    refreshData()
   }, [])
   
   const sendFriendRequest = async ({ friendId }) => {
@@ -93,7 +72,7 @@ const FriendProvider = ({ children }) => {
         autoClose: 3000,
       })
       
-      setFriends([...friends , data.friend])
+      await refreshData()
     }catch(err){
       console.log(err)
     }
@@ -164,7 +143,7 @@ const FriendProvider = ({ children }) => {
         isLoading: false,
         autoClose: 3000,
       })
-      
+      await refreshData()
       console.log(data.message)
     } catch (err) {
       console.log(err)
@@ -202,8 +181,11 @@ const FriendProvider = ({ children }) => {
       })
       
       console.log(data.message)
+      await refreshData()
     } catch (err) {
       console.log(err)
+    } finally {
+      setLoading(true)
     }
   }
   

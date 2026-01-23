@@ -9,10 +9,7 @@ const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
 const createSendToken = async (user, res) => {
   try{
-    // Create JWT token
     const token = user.signToken();
-
-    // Set cookie with the token
     const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV == "prod",
@@ -20,7 +17,7 @@ const createSendToken = async (user, res) => {
         maxAge: 3 * 24 * 60 * 60 * 1000,
     };
 
-    res.cookie(process.env.COOKIE_NAME , token, cookieOptions).redirect(`${process.env.CLIENT_URL}`)
+    res.status(200).cookie(process.env.COOKIE_NAME , token, cookieOptions).redirect(`${process.env.CLIENT_URL}`)
   }catch(err){
     console.error(err);
     res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`)

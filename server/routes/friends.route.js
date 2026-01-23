@@ -3,7 +3,7 @@ const {protect} = require("../middleware/protect")
 const { sendFriendRequest, fetchFriends, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest, removeFriend } = require("../controllers/friends.controller")
 
 friendRouter.post("/send-friend-request", protect , sendFriendRequest)
-friendRouter.get("/friends", protect , fetchFriends)
+friendRouter.get("/", protect , fetchFriends)
 
 friendRouter.get("/requests" , protect , fetchFriendRequests)
 friendRouter.post("/accept-friend-request" , protect , acceptFriendRequest)

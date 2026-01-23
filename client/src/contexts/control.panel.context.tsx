@@ -63,7 +63,7 @@ const ControlPanelProvider = ({children}) => {
       })
       
       setUsers((prev) => prev.map(u => u.id === data.id ? data : u))
-      setRefresh(!refresh)
+      setRefresh(true)
     }catch(err){
       console.log(err)
     }
