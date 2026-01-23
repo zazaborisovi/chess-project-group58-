@@ -66,16 +66,14 @@ const googleCallback = async (req , res) =>{
           if(!email_verified) {
               return res.status(400).json({message: 'Google account not verified'});
           }
-
           user = await User.create({
               username: name,
               email,
               oauthId: sub,
               oauthProvider: 'google'
           });
+          createSendToken(user, res);
       }
-
-      createSendToken(user, res);
   } catch(err) {
       console.log(err);
       res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
