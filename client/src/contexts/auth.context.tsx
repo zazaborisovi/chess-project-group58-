@@ -198,9 +198,45 @@ export const AuthProvider = ({children}) =>{
       })
     }
   }
-  
+  const changeUsername = async (newUsername) => {
+    const toastId = toast.loading("Changing username...")
+    try {
+      const res = await fetch(`${API_URL}/auth/change-username`, {
+        method: 'POST',
+        body: JSON.stringify({ username: newUsername }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: "include"
+      })
+      
+      const data = await res.json()
+      if (!res.ok) {
+        return toast.update(toastId, {
+          render: data.message,
+          type: "error",
+          autoClose: 3000,
+          isLoading: false
+        })
+      }
+      toast.update(toastId, {
+        render: 'Username changed successfully!',
+        type: "success",
+        autoClose: 3000,
+        isLoading: false
+      })
+      user.username = data.updatedUsername
+    } catch(err) {
+      toast.update(toastId, {
+        render: err.message,
+        type: "error",
+        autoClose: 3000,
+        isLoading: false
+      })
+    }
+  }
   return (
-    <AuthContext.Provider value={{ user, signup, signin , googleAuth , loading , signOut , changeProfilePicture}}>
+    <AuthContext.Provider value={{ user, signup, signin , googleAuth , loading , signOut , changeProfilePicture , changeUsername}}>
       {children}
     </AuthContext.Provider>
   )

@@ -14,7 +14,7 @@ const FriendRequestPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.friendId) return toast.info("Please enter a Player ID");
-    sendFriendRequest(formData);
+    sendFriendRequest(formData.friendId);
   };
 
   const copyToClipboard = () => {

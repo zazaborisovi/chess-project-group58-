@@ -93,7 +93,7 @@ const ControlPanel = () => {
     });
     cancelEditing();
   };
-
+  
   return (
     <section className="min-h-screen bg-[#0b0f1a] px-4 py-16 text-slate-200">
       <input 
@@ -103,14 +103,15 @@ const ControlPanel = () => {
         onChange={handleAdminPhotoUpload}
         accept="image/*"
       />
-
+  
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl font-extrabold text-white md:text-5xl tracking-tight">Member Management</h1>
             <p className="text-slate-500 mt-2 text-lg">Manage user accounts and system permissions.</p>
           </div>
-
+  
+            {/* Search Input */}
           <div className="relative w-full md:w-80 group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <svg className="h-4 w-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,16 +127,16 @@ const ControlPanel = () => {
             />
           </div>
         </header>
-
+  
         <div className="flex flex-col gap-4">
-          {/* Header Row */}
+            {/* Table Header */}
           <div className="hidden md:flex items-center px-8 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
             <span className="flex-1">User Info</span>
             <span className="w-32">Access Level</span>
-            <span className="w-24 text-center">Total Wins</span>
+            <span className="w-24 text-center">Wins</span>
             <span className="w-32 text-right">Options</span>
           </div>
-
+  
           {filteredUsers.length > 0 ? (
             filteredUsers.map((usr: any) => {
               const isEditing = editingUserId === usr._id;
@@ -148,7 +149,7 @@ const ControlPanel = () => {
                       : "border-slate-800 bg-slate-900/40"
                   }`}
                 >
-                  {/* Fixed Center Alignment Row */}
+                  {/* List View Row */}
                   <div className="flex flex-col md:flex-row md:items-center gap-4 p-6 md:px-8">
                     <div className="flex flex-1 items-center gap-4 min-w-0">
                       <div 
@@ -182,12 +183,10 @@ const ControlPanel = () => {
                         {usr.role || "player"}
                       </span>
                     </div>
-
-                    {/* Wins Column: Centered vertically and horizontally */}
-                    <div className="w-24 flex items-center md:justify-center">
+                    
+                  <div className="w-24 flex items-center md:justify-center">
                       <p className="text-xl font-black text-white leading-none">{usr.wins ?? 0}</p>
                     </div>
-
                     <div className="w-full md:w-32 flex items-center justify-end">
                       {!isEditing && (
                         <button 
@@ -199,69 +198,73 @@ const ControlPanel = () => {
                       )}
                     </div>
                   </div>
-
+  
+                    {/* EDITING FORM SECTION */}
                   {isEditing && draft && (
                     <div className="bg-slate-950/50 border-t border-slate-800 p-6 md:p-8 space-y-6 animate-in slide-in-from-top-2 duration-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        {/* TOP LEFT: Username */}
                         <EditableField
                           label="Username"
                           value={draft.username}
                           onChange={(v: string) => setDraft({...draft, username: v})}
                         />
-                        <EditableField
-                          label="Email Address"
-                          value={draft.email}
-                          onChange={(v: string) => setDraft({...draft, email: v})}
-                        />
-                        <div>
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Access Level</label>
-                          <select
-                            className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white outline-none focus:border-indigo-500"
-                            value={draft.role}
-                            onChange={(e) => setDraft({...draft, role: e.target.value})}
+  
+                          {/* TOP RIGHT: Access Level */}
+                          <div>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Access Level</label>
+                            <select
+                              className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all cursor-pointer"
+                              value={draft.role}
+                              onChange={(e) => setDraft({...draft, role: e.target.value})}
+                            >
+                              {roleOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                          </div>
+  
+                          {/* BOTTOM: Total Wins (Full Width) */}
+                          <div className="md:col-span-2">
+                            <EditableField
+                              label="Wins"
+                              value={draft.wins}
+                              onChange={(v: string) => setDraft({...draft, wins: v})}
+                              inputMode="numeric"
+                            />
+                          </div>
+                        </div>
+  
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
+                          <button 
+                            onClick={() => { if(window.confirm("Are you sure?")) deleteUser(usr) }}
+                            className="text-xs font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition"
                           >
-                            {roleOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                          </select>
-                        </div>
-                        <EditableField
-                          label="Total Wins"
-                          value={draft.wins}
-                          onChange={(v: string) => setDraft({...draft, wins: v})}
-                          inputMode="numeric"
-                        />
-                      </div>
-
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
-                        <button 
-                          onClick={() => { if(window.confirm("Are you sure you want to delete this account? This cannot be undone.")) deleteUser(usr) }}
-                          className="text-xs font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition"
-                        >
-                          Permanently Delete User
-                        </button>
-                        <div className="flex gap-3 w-full md:w-auto">
-                          <button onClick={cancelEditing} className="flex-1 md:flex-none rounded-xl px-6 py-3 text-sm font-bold text-slate-400 hover:text-white">
-                            Cancel
+                            Permanently Delete User
                           </button>
-                          <button onClick={applyDraftChanges} className="flex-1 md:flex-none rounded-xl bg-indigo-600 px-8 py-3 text-sm font-bold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20">
-                            Save Changes
-                          </button>
+                          <div className="flex gap-3 w-full md:w-auto">
+                            <button onClick={cancelEditing} className="flex-1 md:flex-none rounded-xl px-6 py-3 text-sm font-bold text-slate-400 hover:text-white transition">
+                              Cancel
+                            </button>
+                            <button onClick={applyDraftChanges} className="flex-1 md:flex-none rounded-xl bg-indigo-600 px-8 py-3 text-sm font-bold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 transition">
+                              Save Changes
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </article>
-              );
-            })
-          ) : (
-            <div className="py-20 text-center rounded-3xl border-2 border-dashed border-slate-800/50">
-              <p className="text-slate-500 font-bold">No accounts matched your search.</p>
-            </div>
-          )}
+                    )}
+                  </article>
+                );
+              })
+            ) : (
+              <div className="py-20 text-center rounded-3xl border-2 border-dashed border-slate-800/50">
+                <p className="text-slate-500 font-bold">No accounts matched your search.</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-};
+      </section>
+    );
+  };
 
 const EditableField = ({ label, value, onChange, inputMode = "text" }: any) => (
   <div className="flex flex-col gap-2">

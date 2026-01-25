@@ -72,4 +72,15 @@ const changeProfilePicture = async (req, res) => {
   }
 }
 
-module.exports = { signup , signin , changeProfilePicture}
+const changeUsername = async (req, res) => {
+  try {
+    const user = req.user
+    user.username = req.body.username
+    await user.save()
+    res.status(200).json({ message: "Username updated successfully", updatedUsername: user.username });
+  } catch (err) {
+    return res.status(500).json({message: err.message})
+  }
+}
+
+module.exports = { signup , signin , changeProfilePicture , changeUsername }

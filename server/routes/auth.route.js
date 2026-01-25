@@ -1,4 +1,4 @@
-const { signup , signin , changeProfilePicture} = require('../controllers/auth.controller');
+const { signup , signin , changeProfilePicture , changeUsername} = require('../controllers/auth.controller');
 const {protect} = require('../middleware/protect');
 const upload = require('../utils/multer');
 
@@ -16,5 +16,6 @@ authRouter.post("/signout", protect , (req , res) =>{
 })
 
 authRouter.post("/change-profile-picture", protect , upload.single("file") , changeProfilePicture)
+authRouter.post("/change-username", protect , changeUsername)
 
 module.exports = authRouter

@@ -2,13 +2,29 @@ import { useFriends } from "@/contexts/friends.context";
 import { useAuth } from "../contexts/auth.context";
 import { useRef, useState } from "react";
 import { useChat } from "@/contexts/chat.context";
+import { useForm } from "@/hooks/useForm";
 
 const ProfilePage = () => {
-  const { user, changeProfilePicture } = useAuth();
+  const { user, changeProfilePicture, changeUsername } = useAuth();
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState(user?.profilePicture?.url);
   const { friends } = useFriends();
   const { getSpecificChat } = useChat();
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+
+  const [formData, handlechange] = useForm({
+    username: user?.username || "",
+  });
+
+  const handleUsernameChange = async (e) => {
+    e.preventDefault();
+    // Use formData.username to match your useForm field name
+    if (formData.username === user.username) {
+      return setIsEditingUsername(false);
+    }
+    const success = await changeUsername(formData.username);
+    if (success) setIsEditingUsername(false);
+  };
 
   const handlephotoupload = (e) => {
     const file = e.target.files[0];
@@ -53,11 +69,52 @@ const ProfilePage = () => {
             </div>
 
             {/* Identity Info */}
-            <div className="flex flex-1 flex-col items-center md:items-start">
+            <div className="flex flex-1 flex-col items-center md:items-start w-full">
               <span className="mb-2 rounded-full bg-indigo-500/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">
                 {user.role || 'Player'} Rank
               </span>
-              <h1 className="text-4xl font-black tracking-tighter text-white md:text-6xl">{user.username}</h1>
+
+              {isEditingUsername ? (
+                <form onSubmit={handleUsernameChange} className="flex flex-col gap-3 w-full max-w-sm">
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handlechange}
+                    className="w-full rounded-xl border border-indigo-500/50 bg-slate-900/60 px-4 py-2 text-2xl font-black text-white outline-none ring-4 ring-indigo-500/10"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button type="submit" className="flex-1 md:flex-none rounded-lg bg-indigo-600 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-colors">
+                      Save
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setIsEditingUsername(false)}
+                      className="flex-1 md:flex-none rounded-lg bg-white/5 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="group flex items-center justify-center md:justify-start gap-4 w-full">
+                  <h1 className="text-4xl font-black tracking-tighter text-white md:text-6xl truncate">
+                    {user.username}
+                  </h1>
+                  <button 
+                    onClick={() => setIsEditingUsername(true)}
+                    // Visible on mobile (opacity-100), hidden/hover on desktop (md:opacity-0)
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all p-2 bg-white/5 md:bg-transparent rounded-full border border-white/10 md:border-none hover:scale-110 active:scale-90"
+                    title="Edit Username"
+                  >
+                    <svg className="w-5 h-5 text-indigo-400 md:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
               <div className="mt-6 flex flex-wrap justify-center gap-4 md:justify-start">
                 <div className="rounded-2xl bg-white/5 px-6 py-3 border border-white/5">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">ID</p>

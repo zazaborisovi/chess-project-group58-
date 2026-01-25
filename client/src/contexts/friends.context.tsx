@@ -40,7 +40,7 @@ const FriendProvider = ({ children }) => {
     refreshData()
   }, [])
   
-  const sendFriendRequest = async ({ friendId }) => {
+  const sendFriendRequest = async (friendId) => {
     const toastId = toast.loading("Sending friend request...")
     try{
       const res = await fetch(`${API_URL}/send-friend-request`, {
@@ -108,6 +108,7 @@ const FriendProvider = ({ children }) => {
         autoClose: 3000,
       })
       
+      await refreshData()
       await createChat(friendId)
     }catch(err){
       console.log(err)
