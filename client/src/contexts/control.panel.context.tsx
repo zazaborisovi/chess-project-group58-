@@ -68,9 +68,8 @@ const ControlPanelProvider = ({children}) => {
       console.log(err)
     }
   }
-  
-  const deleteUser = async (user) => {
-    const toastId = toast.loading("Deleting user...")
+  const deleteUser = async (userId) => {
+    const toastId = toast.loading("deleting user...")
     try {
       const res = await fetch(`${API_URL}/admin/delete-user`, {
         method: "POST",
@@ -78,13 +77,13 @@ const ControlPanelProvider = ({children}) => {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ userId: user._id })
+        body: JSON.stringify({ userId })
       })
       
       const data = await res.json()
       
       if (!res.ok) {
-        toast.update(toastId, {
+        return toast.update(toastId, {
           render: data.error,
           type: "error",
           isLoading: false,
@@ -99,10 +98,15 @@ const ControlPanelProvider = ({children}) => {
         autoClose: 3000,
       })
       
-      setUsers((prev) => prev.filter(u => u._id !== user._id))
+      setUsers((prev) => prev.filter(u => u._id !== userId))
       setRefresh(!refresh)
     } catch (err) {
-      console.log(err)
+      toast.update(toastId, {
+        render: "An error occurred while deleting the user",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      })
     }
   }
   

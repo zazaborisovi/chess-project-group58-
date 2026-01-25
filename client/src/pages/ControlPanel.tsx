@@ -94,6 +94,8 @@ const ControlPanel = () => {
     cancelEditing();
   };
   
+  
+  
   return (
     <section className="min-h-screen bg-[#0b0f1a] px-4 py-16 text-slate-200">
       <input 
@@ -236,7 +238,7 @@ const ControlPanel = () => {
   
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
                           <button 
-                            onClick={() => { if(window.confirm("Are you sure?")) deleteUser(usr) }}
+                            onClick={() => { if(window.confirm("Are you sure?")) deleteUser(usr._id) }}
                             className="text-xs font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition"
                           >
                             Permanently Delete User
